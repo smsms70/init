@@ -1,0 +1,13 @@
+
+#front - react
+front-web/node_modules
+front-web/dist
+
+#front - cli (idea)
+front-cli
+
+#backend - go
+back-go/foo.db
+back-go/.env
+.env
+

@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+body {
+  /* background-color: #d9d9d9; */
+  min-height: 97dvh;
+}
+
+@theme {
+  --color-bg: #d9d9d9;
+  --color-primary: #B6B09F;
+}

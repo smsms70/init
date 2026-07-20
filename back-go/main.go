@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	"example.com/backend/config"
 	"example.com/backend/internal/routes"
 	"github.com/gin-contrib/cors"
@@ -24,7 +22,6 @@ func main() {
 
 	defer config.DB.Close()
 
-	fmt.Println("aaaaah")
 	r := router.Group("/api/v1")
 
 	routes.TodoRoutes(r)

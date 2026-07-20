@@ -3,11 +3,13 @@ import HomePage from "../pages/Home/Home"
 import DashboardPage from "../pages/Dashboard/DashboardMain"
 import DashboardProjectElement from "../pages/Dashboard/DashboardElement"
 import LoginPage from "../pages/Auth/LoginPage"
+import NotFoundPage from "../pages/NotFound.tsx"
 
 export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
+      <Route path="*" element={<NotFoundPage />} />
 
       <Route path="/dashboard" element={<DashboardPage />} />
       <Route path="/dashboard/:project_id" element={<DashboardProjectElement />} />

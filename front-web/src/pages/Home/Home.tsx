@@ -1,9 +1,10 @@
 import { Link } from "react-router"
+import type { JSX } from "react/jsx-runtime"
 
 export default function HomePage() {
   return (
-    <section className="h-screen flex flex-col justify-center">
-      <section className="flex mt-[-15%] items-center flex-col font-medium">
+    <CenterComponents>
+      <>
         <h1 className=" text-[2.75rem] font-mono ">InitMap</h1>
         <section className="mt-5">
           <Link to={"./dashboard"}>
@@ -16,8 +17,18 @@ export default function HomePage() {
             <div className="font-thin">App running</div>
           </div>
         </section>
-      </section>
-    </section>
+      </>
+    </CenterComponents>
   )
 }
 
+export function CenterComponents({ children }: { children: JSX.Element }) {
+  return (
+    <section className="h-screen flex flex-col justify-center">
+      <section className="flex mt-[-15%] items-center flex-col font-medium">
+        {children}
+      </section>
+    </section>
+
+  )
+}

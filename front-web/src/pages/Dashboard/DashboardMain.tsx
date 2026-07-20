@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, type SetStateAction } from "react"
 import { AddIcon, DeleteIcon, DotsIcon, EditPencilIcon } from "../../assets/icons"
 import { Link } from "react-router"
-import { fetchAddParentNode, fetchDeleteNode, fetchParentsNodes, fetchUpdateNodes, fetchGetNodeName } from "../../components/fetchData"
-import type { DBNode, ProjectNode } from "./dashboardElement_types"
+import { fetchAddParentNode, fetchDeleteNode, fetchParentsNodes, fetchUpdateNodes } from "../../components/fetchData"
+import type { DBNode } from "./dashboardElement_types"
 
 export type ProjectType = {
   id?: number
@@ -13,9 +13,6 @@ type ProjectNodeType = {
   Id: number
   data: string
   type?: "parent_node"
-}
-type ErrorT = {
-  Error: string
 }
 
 export default function DashboardPage() {
@@ -118,9 +115,6 @@ export function ProjectHeader({ name, setName, project_id, onUpdate, deleteButto
   const [loading, setLoading] = useState(false);
   const prevName = useRef(name)
 
-  const handleDelete = () => {
-    //delete
-  }
 
   useEffect(() => {
     const updateHandler = async () => {
@@ -272,13 +266,6 @@ function AddProj({ onAddElement }: {
       document.body.removeEventListener("mousedown", handleClickOutside)
     }
   }, [])
-
-  useEffect(() => {
-    if (!edit) {
-      //code to send a new parent 
-      // setName("")
-    }
-  }, [edit])
 
   return (
     <div ref={addButtonRef} className={`flex justify-center rounded items-center group duration-100 border border-gray-300 shadow-sm 

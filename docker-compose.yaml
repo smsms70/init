@@ -1,0 +1,16 @@
+services:
+  frontend:
+    build: ./front-web/
+    ports: 
+    - "5173:5173"
+
+  backend:
+    build: ./back-go/
+    depends_on: 
+      frontend
+    ports:
+    - "8080:8080"
+    environment:
+      - ADMIN_PASSWORD=secret_password
+      - ADMIN_USER=admin
+

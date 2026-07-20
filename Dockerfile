@@ -17,11 +17,13 @@ ENV CGO_ENABLED=1
 
 WORKDIR /app/backend
 COPY ./back-go/go.mod ./back-go/go.sum ./backend
-RUN go install github.com/air-verse/air@latest
+# RUN go install github.com/air-verse/air@latest
 RUN cd backend && go mod download
 COPY back-go/ ./backend/
 COPY --from=frontend-build /app/front/dist ./back/frontend/dist
-CMD ["air"]
+RUN go build -v -o /app ./...
+CMD ["app"]
+# CMD ["air"]
 
 #final stage
 FROM alpine:3.19

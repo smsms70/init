@@ -1,6 +1,8 @@
 services:
   backend:
-    build: ./back-go/
+    build: 
+      context: ./back-go/
+      dockerfile: dev.Dockerfile
     ports:
     - "8080:8080"
     environment:
@@ -13,7 +15,9 @@ services:
           target: /app
 
   frontend:
-    build: ./front-web/
+    build: 
+      context: ./front-web/
+      dockerfile: dev.Dockerfile
     depends_on:
       - backend
     ports: 

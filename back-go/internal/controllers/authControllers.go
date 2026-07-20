@@ -7,15 +7,15 @@ import (
 	"net/http"
 	"time"
 
+	"example.com/backend/config"
 	"github.com/gin-gonic/gin"
 
 	"github.com/golang-jwt/jwt/v5"
-	// "golang.org/x/crypto/bcrypt"
 	"os"
 )
 
-var jwtSecret = []byte("your-very-secret-key")
-var refreshTokenSecret = []byte("super-secret-key-to-refresh")
+var jwtSecret []byte = config.GenKey()
+var refreshTokenSecret []byte = config.GenKey()
 
 type User struct {
 	Username *string `json:"username" binding:"required"`

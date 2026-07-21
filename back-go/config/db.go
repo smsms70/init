@@ -15,9 +15,11 @@ var DB *sql.DB
 func InitDB() {
 
 	var err error
-	dbPath := os.Getenv("DB_PATH")
-	if dbPath == "" {
-		dbPath = "./data/foo.db"
+
+	dbPath, exist := os.LookupEnv("DB_PATH")
+	if !exist || dbPath == "" {
+		fmt.Println("happened")
+		dbPath = "./data/foo-data.db"
 	}
 	DB, err = sql.Open("sqlite3", dbPath)
 

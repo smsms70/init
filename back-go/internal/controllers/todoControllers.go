@@ -19,8 +19,11 @@ func CreateTable(c *gin.Context) {
 
 func GetParentNodes(c *gin.Context) {
 	rows, err := todoModels.GetParentNodes()
+	fmt.Println("happend")
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
+		fmt.Println("error is: ", err)
+		fmt.Println("error is: ", err.Error())
 		return
 	}
 	c.JSON(200, gin.H{"rows": rows})
@@ -55,11 +58,12 @@ func AddNode(c *gin.Context) {
 		return
 	}
 
-	if err := todoModels.AddNode(paramId, body); err != nil {
+	LastInsertId, err := todoModels.AddNode(paramId, body)
+	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "added new todo"})
+	c.JSON(http.StatusOK, gin.H{"id": LastInsertId})
 }
 
 type ParentNodeStruct struct {

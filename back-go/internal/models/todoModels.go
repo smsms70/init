@@ -28,7 +28,7 @@ type ParentNodes struct {
 }
 
 var tableCreation = `
-CREATE TABLE nodes (
+CREATE TABLE IF NOT EXISTS nodes (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	parent_id INTEGER,
 	data TEXT NOT NULL,
@@ -119,12 +119,14 @@ type AddNodeType struct {
 	Orden *string `json:"orden" binding:"required"`
 }
 
-func AddNode(id string, newNode AddNodeType) error {
+func AddNode(id string, newNode AddNodeType) (int64, error) {
 	insertSQL := `INSERT INTO nodes(data, type, orden, parent_id) values(?, ?, ?, ?);`
 	fmt.Println(*newNode.Orden)
-	_, err := config.DB.Exec(insertSQL, *newNode.Data, *newNode.Type, *newNode.Orden, id)
+	result, err := config.DB.Exec(insertSQL, *newNode.Data, *newNode.Type, *newNode.Orden, id)
 
-	return err
+	LastInserId, err := result.LastInsertId()
+
+	return LastInserId, err
 }
 
 func AddParentNode(data string) error {

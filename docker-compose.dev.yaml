@@ -8,12 +8,15 @@ services:
     environment:
       - ADMIN_PASSWORD=secret_password
       - ADMIN_USER=admin
-      - JWT_SECRET=somethinghere
+      - JWT_SECRET=something
+      - DEV=true
     develop:
       watch:
         - action: sync
           path: ./back-go
           target: /app
+    volumes:
+      - ./data:/app/data
 
   frontend:
     build: 

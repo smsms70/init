@@ -21,21 +21,34 @@ import { move } from "@dnd-kit/helpers";
 
 export default function DashboardProjectElement() {
   const [allData, setAllData] = useState<ProjectNode[]>([]);
-  const nextId = useRef(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false)
   const { project_id } = useParams()
   const [name, setName] = useState("")
 
+  const addElement = async () => {
+    const type = "string";
+    const newOrden = allData.length ? allData[allData.length - 1].state.orden + 1 : 1
+
+    const data = await fetchAddNode(
+      Number(project_id),
+      { Type: type, Orden: (newOrden).toString(), Data: "" }
+    )
+
+    console.log("id is: ", data.id)
+
+    const newItem: ProjectNode = {
+      class: "basic-blocks",
+      parent_id: Number(project_id),
+      id: data.id,
+      state: { orden: newOrden, edit: true },
+      type: type,
+      data: "",
+    }
+    setAllData(prev => [...prev, newItem])
+  }
   function mapFetchedDataToNode(data: DataFetchedType[]): ProjectNode[] {
     const parent_id = Number(project_id);
-    if (!data) return [{
-      id: 1,
-      parent_id: parent_id,
-      data: "",
-      type: "string",
-      state: { orden: 1, edit: false }
-    }]
 
     const newDataArr: ProjectNode[] = data.map(
       (item: DataFetchedType) => ({
@@ -72,13 +85,12 @@ export default function DashboardProjectElement() {
       try {
         const Data = await fetchNodes(project_id)
 
-        const data = mapFetchedDataToNode(Data)
-
-        const orderData = data.sort((a, b) => a.state.orden - b.state.orden)
-        setAllData(orderData)
-
-        const maxId = Math.max(...orderData.map(item => item.id))
-        nextId.current = maxId
+        console.log(Data)
+        if (Data) {
+          const data = mapFetchedDataToNode(Data)
+          const orderData = data.sort((a, b) => a.state.orden - b.state.orden)
+          setAllData(orderData)
+        }
       } catch (err) {
         console.error("error is: ", err)
         setError(true)
@@ -89,6 +101,9 @@ export default function DashboardProjectElement() {
     updateData();
   }, [project_id])
 
+  useEffect(() => {
+    console.log("it here: ", allData)
+  }, [allData])
 
   return (
     <section className="">
@@ -146,7 +161,7 @@ export default function DashboardProjectElement() {
               loading ? (
                 <div>loading...</div>
               ) : (
-                !error ? (
+                error ? (
                   <div>error</div>
                 ) : (
                   <>
@@ -157,11 +172,18 @@ export default function DashboardProjectElement() {
                           node={e}
                           allItems={allData}
                           setNewItem={setAllData}
-                          generateId={() => ++nextId.current}
                           sortIndex={idx}
                         />
                       ))
                     }
+                    {
+                      !allData.length &&
+                      <button onClick={() => addElement()}
+                        className="w-40 rounded flex justify-center cursor-pointer hover:scale-105 duration-75 border border-gray-300 ">
+                        <AddIcon className="group size-6 stroke-gray-400" />
+                      </button>
+                    }
+
                   </>
                 )
               )
@@ -184,11 +206,10 @@ Number.prototype.countDecimals = function() {
   if (Math.floor(this.valueOf()) === this.valueOf()) return 0
   return this.toString().split(".")[1].length || 0
 }
-function ProjectNode({ node, setNewItem, allItems, generateId, sortIndex }: {
+function ProjectNode({ node, setNewItem, allItems, sortIndex }: {
   node: ProjectNode,
   allItems: ProjectNode[],
   setNewItem: Dispatch<SetStateAction<ProjectNode[]>>
-  generateId: () => number
   sortIndex: number
 }) {
   const addButtonsRef = useRef<HTMLDivElement>(null)
@@ -221,18 +242,20 @@ function ProjectNode({ node, setNewItem, allItems, generateId, sortIndex }: {
       { Type: newType, Orden: (newOrden).toString(), Data: "" }
     )
 
-    console.log(newOrden, addedNode)
+    const id = addedNode.id
+    console.log('the new id is:', addedNode, 'last one is: ', id)
 
     const newItem: ProjectNode = {
       class: "basic-blocks",
       parent_id: node.parent_id,
-      id: generateId(),
+      id: id,
       state: { orden: newOrden, edit: true },
       type: newType,
       data: "",
     }
     setNewItem(prev => sortAllItems([...prev, newItem]))
   }
+
   useEffect(() => {
     const updateDataState = async () => {
       if (!node.state.edit && node.data != dataPrevState.current) {
@@ -243,7 +266,7 @@ function ProjectNode({ node, setNewItem, allItems, generateId, sortIndex }: {
       }
     }
     updateDataState()
-
+    console.log(node.id)
   }, [node.state.edit])
 
 

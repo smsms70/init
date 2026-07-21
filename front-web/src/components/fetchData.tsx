@@ -27,7 +27,7 @@ async function fetchRefreshTokenMiddleware(url: string, options: RequestInit) {
       response = await fetch(url, options)
     } catch (err) {
       console.error("RELOCATE, bro!", err)
-      // window.location.href = "/auth/login"
+      window.location.href = "/auth/login"
     }
   }
   return response
@@ -180,6 +180,7 @@ export async function fetchAddNode(parent_id: number, node: Pick<DBNode, "Type" 
     console.log(node)
     if (!response.ok) throw new Error("error")
     const data = await response.json()
+    console.log(data)
     return data
 
   } catch (err) {

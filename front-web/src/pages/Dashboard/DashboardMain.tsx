@@ -21,31 +21,27 @@ export default function DashboardPage() {
   const [error, setError] = useState("")
   const [dashboardName, setDashboardName] = useState("dashboardName");
 
-  // const [dashboardName, setDashboardName] = useState("dashboardName")
-
-
   const updateData = async () => {
     try {
       const Data = await fetchParentsNodes()
-      console.log(Data)
       setData(Data)
-    } catch (err: any) {
-      setError(err.message)
-      console.error("error is: ", err.message)
-      if (err.name && err.name == "AuthErr") window.location.href = "/auth/login"
+    } catch (err) {
+      setError("error")
+      console.error("error is: ", err)
+      // if (err.name && err.name == "AuthErr") window.location.href = "/auth/login"
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    updateData();
+    const update = async () => updateData()
+    update()
   }, [])
 
   const addElement = async (item: Pick<DBNode, "Data">) => {
     await fetchAddParentNode(item)
     await updateData()
-    // const newItem: ProjectNodeType = {
   }
 
   const handleDeleteElement = async (item: ProjectNodeType["Id"]) => {
@@ -108,12 +104,10 @@ export function ProjectHeader({ name, setName, project_id, onUpdate, deleteButto
   project_id?: string
   onUpdate?: (nodeId: number, updatedData: Partial<DBNode>) => void
   deleteButton?: boolean
-  // onUpdate?: (item: any) => void
 }) {
   const [edit, setEdit] = useState(false);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
-  const prevName = useRef(name)
 
 
   useEffect(() => {

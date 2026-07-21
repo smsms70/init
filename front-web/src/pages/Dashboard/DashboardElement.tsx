@@ -20,7 +20,7 @@ import { move } from "@dnd-kit/helpers";
 // import './highlight.css';
 
 export default function DashboardProjectElement() {
-  const [allData, setAllData] = useState<ProjectNode[]>(null);
+  const [allData, setAllData] = useState<ProjectNode[]>([]);
   const nextId = useRef(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false)
@@ -140,20 +140,31 @@ export default function DashboardProjectElement() {
             const newArr = move(newData, event)
             setAllData(newArr)
           }}
-
         >
           <div className="border p-5 ">
             {
-              allData && allData.map((e, idx) => (
-                <ProjectNode
-                  key={e.id}
-                  node={e}
-                  allItems={allData}
-                  setNewItem={setAllData}
-                  generateId={() => ++nextId.current}
-                  sortIndex={idx}
-                />
-              ))
+              loading ? (
+                <div>loading...</div>
+              ) : (
+                !error ? (
+                  <div>error</div>
+                ) : (
+                  <>
+                    {
+                      allData && allData.map((e, idx) => (
+                        <ProjectNode
+                          key={e.id}
+                          node={e}
+                          allItems={allData}
+                          setNewItem={setAllData}
+                          generateId={() => ++nextId.current}
+                          sortIndex={idx}
+                        />
+                      ))
+                    }
+                  </>
+                )
+              )
             }
           </div>
         </DragDropProvider>
@@ -258,7 +269,7 @@ function ProjectNode({ node, setNewItem, allItems, generateId, sortIndex }: {
 
   const deleteElement = async (item: ProjectNode) => {
     if (allItems.length < 2) return
-    const data = await fetchDeleteNode(item.id);
+    await fetchDeleteNode(item.id);
     //if data incorrect
     setNewItem(prev =>
       prev.filter(prevItem => prevItem.id != item.id)
@@ -316,10 +327,10 @@ function ProjectNode({ node, setNewItem, allItems, generateId, sortIndex }: {
           <NodeTodo node={node} />
         }
         {node.type == "string" &&
-          <NodeString node={node} />
+          <NodeString />
         }
         {node.type == "list" &&
-          <NodeList node={node} />
+          <NodeList />
         }
         {node.type == "code" &&
           <NodeCode node={node}
@@ -339,17 +350,15 @@ function ProjectNode({ node, setNewItem, allItems, generateId, sortIndex }: {
     </div>
   )
 }
-function NodeString({ node }: { node: ProjectNode }) {
+function NodeString() {
   return (
     <>
-      <SimpleEditText
-        codeToFetch={() => { }}
-      />
+      <SimpleEditText />
     </>
   )
 }
 
-const LanguageMap: Record<string, any> = {
+const LanguageMap: Record<string, Prism.Grammar> = {
   html: languages.html,
   css: languages.css,
   js: languages.js,
@@ -442,7 +451,7 @@ function NodeTodo({ node }: { node: ProjectNode }) {
     </>
   )
 }
-function NodeList({ node }: { node: ProjectNode }) {
+function NodeList() {
   return (
     <>
       <SimpleEditText
@@ -493,9 +502,8 @@ function NodeNumberList({ node, allItems, position, updateElement }: {
     </SimpleEditText>
   )
 }
-function SimpleEditText({ children, codeToFetch, textClass, parentClass }: {
+function SimpleEditText({ children, textClass, parentClass }: {
   children?: JSX.Element,
-  codeToFetch?: () => void
   textClass?: string
   parentClass?: string
 }) {
@@ -504,7 +512,7 @@ function SimpleEditText({ children, codeToFetch, textClass, parentClass }: {
     throw new Error('UserContext must be used within a Provider');
   }
 
-  const { node, onUpdate, addFunc, onDelete, buttonsRef, remaining, focusElement } = context
+  const { node, onUpdate, addFunc, onDelete, remaining, focusElement } = context
 
   const dropdownRef = useRef<HTMLDivElement>(null)
   const editRef = useRef<HTMLInputElement>(null)

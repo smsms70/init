@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 
 	_ "github.com/joho/godotenv"
 	_ "github.com/mattn/go-sqlite3"
@@ -14,7 +15,11 @@ var DB *sql.DB
 func InitDB() {
 
 	var err error
-	DB, err = sql.Open("sqlite3", "./foo.db")
+	dbPath := os.Getenv("DB_PATH")
+	if dbPath == "" {
+		dbPath = "./data/foo.db"
+	}
+	DB, err = sql.Open("sqlite3", dbPath)
 
 	fmt.Println("db connected")
 

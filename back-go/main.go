@@ -11,6 +11,12 @@ import (
 func main() {
 	router := gin.Default()
 	config.InitDB()
+
+	router.Static("/assets", "./frontend/dist/assets")
+	router.NoRoute(func(c *gin.Context) {
+		c.File("./frontend/dist/index.html")
+	})
+
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:5173"}, // Specific origins
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},

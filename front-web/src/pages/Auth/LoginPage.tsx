@@ -9,7 +9,7 @@ export default function LoginPage() {
   type loginData = {
     token: string
   }
-  const submitHandler = async (event: SubmitEvent) => {
+  const submitHandler = async (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault()
 
     try {
@@ -22,9 +22,9 @@ export default function LoginPage() {
       console.log("response: ", response)
 
       // window.location.href = '/dashboard';
-    } catch (err: any) {
-      console.log(err.message)
-      setError(err.message)
+    } catch (err) {
+      console.log(err)
+      setError("error")
     } finally {
       setLoading(false)
     }

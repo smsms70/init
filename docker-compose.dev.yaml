@@ -8,7 +8,7 @@ services:
     environment:
       - ADMIN_PASSWORD=secret_password
       - ADMIN_USER=admin
-      - JWT_SECRET=something
+      - JWT_SECRET=jwt_secret_token
       - DEV=true
     develop:
       watch:

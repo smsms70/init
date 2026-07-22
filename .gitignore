@@ -1,3 +1,6 @@
+#main
+.git
+README.md
 
 #front - react
 front-web/node_modules
@@ -10,4 +13,5 @@ front-cli
 back-go/foo.db
 back-go/.env
 .env
+
 

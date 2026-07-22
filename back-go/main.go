@@ -16,7 +16,7 @@ func main() {
 	config.InitDB()
 
 	_, exists := os.LookupEnv("DEV")
-	if exists {
+	if !exists {
 		router.Static("/assets", "./frontend/dist/assets")
 		router.NoRoute(func(c *gin.Context) {
 			c.File("./frontend/dist/index.html")

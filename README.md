@@ -1,3 +1,5 @@
+![Project Logo](./front-web/src/assets/init.png)
+
 # Init
 the app is intented to work as a todo (toolbox in the future) similar to notion but running in local (not online support yet) to organize the ideas and start/advance in projects.
 

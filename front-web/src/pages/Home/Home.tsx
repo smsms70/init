@@ -5,10 +5,17 @@ export default function HomePage() {
   return (
     <CenterComponents>
       <>
-        <h1 className=" text-[2.75rem] font-mono ">InitMap</h1>
-        <section className="mt-5">
+        <header className="flex shadow px-5 relative flex-col  items-center">
+          <h1 className=" text-[2.50rem] font-mono font-semibold h-16 leading-16 text-center borde px-4 rounded-xl">init</h1>
+          <div className="flex border-b ">
+            <span className="text-2xl font-mono font-light">~/idea/</span>
+            <span className="text-xl font-mono font-light">code/</span>
+            <span className=" font-mono font-light">project</span>
+          </div>
+        </header>
+        <section className="mt-8">
           <Link to={"./dashboard"}>
-            <div className="w-30 h-14 flex bg-white rounded-2xl justify-center items-center text-2xl font-medium border duration-200 hover:scale-x-105 hover:border-blue-400">
+            <div className="w-30 h-14 flex bg-white rounded-2xl justify-center items-center text-2xl font-medium border-2 duration-200 hover:scale-x-105 hover:border-blue-400">
               Create
             </div>
           </Link>

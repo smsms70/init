@@ -1,7 +1,9 @@
 services:
   init:
     container_name: init
-    image: hefrenz/init:latest
+    build: 
+      context: .
+    # image: hefrenz/init:latest
     ports:
     - "8080:8080"
     environment:

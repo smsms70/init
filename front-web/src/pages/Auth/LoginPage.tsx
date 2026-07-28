@@ -17,26 +17,15 @@ export default function LoginPage() {
       if (pass.length < 5) throw new Error("password too short")
       const response: loginData = await fetchLogin({ password: pass })
 
-      // const tokenBearer = "Bearer " + response.token
-      // localStorage.setItem('token', tokenBearer);
       console.log("response: ", response)
 
-      // window.location.href = '/dashboard';
+      window.location.href = '/dashboard';
     } catch (err) {
       console.log(err)
       setError("error")
     } finally {
       setLoading(false)
     }
-
-
-    // Store token (e.g., in localStorage or context)
-    // localStorage.setItem('token', loginData.token);
-    // Optionally store user info
-    // localStorage.setItem('user', JSON.stringify(loginData.user));
-
-    // Redirect or update app state
-    // window.location.href = '/dashboard';
   }
 
   return (

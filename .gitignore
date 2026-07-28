@@ -1,5 +1,8 @@
 #main
 .git
+data/foo-data.db
+data/
+data
 README.md
 
 #front - react

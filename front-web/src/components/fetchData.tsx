@@ -1,6 +1,7 @@
 import type { DBNode, User } from "../pages/Dashboard/dashboardElement_types"
 
-const URL = "http://localhost:8080/" + "api/v1/"
+// const URL = "http://localhost:8080/" + "api/v1/"
+const URL = "/api/v1/"
 const loginURL = URL + "auth/login"
 const nodes = "nodes/"
 const parent_nodes = "parent_node/"

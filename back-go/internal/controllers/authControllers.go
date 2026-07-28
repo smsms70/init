@@ -71,6 +71,7 @@ func RefreshToken(c *gin.Context) {
 	}
 
 	accessDuration := int(Expiration.accessToken * 10000)
+	c.SetSameSite(http.SameSiteLaxMode)
 	c.SetCookie("token_id", tokenString, accessDuration, "/", "", false, true)
 
 	c.JSON(http.StatusOK, gin.H{"message": tokenString})
@@ -116,6 +117,7 @@ func Login(c *gin.Context) {
 	//set cookies with tokens
 	accessDuration := int(Expiration.accessToken * 10000)
 	refreshDuration := int(Expiration.refreshToken * 10000)
+	c.SetSameSite(http.SameSiteLaxMode)
 	c.SetCookie("token_id", token.Token, accessDuration, "/", "", false, true)
 	c.SetCookie("refresh_token_id", token.RefreshToken, refreshDuration, "/", "", false, true)
 

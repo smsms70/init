@@ -1,5 +1,5 @@
 import { ProjectHeader } from "./DashboardMain"
-import { AddIcon, ArrowIcon, ChecklistIcon, CodeListIcon, DotListIcon, DotsMoveIcon, NumberListIcon } from "../../assets/icons"
+import { AddIcon, ArrowIcon, ChecklistIcon, CodeListIcon, DotListIcon, DotsMoveIcon, NumberListIcon, CopyIcon } from "../../assets/icons"
 import { Link, useParams } from "react-router"
 import React, { useEffect, useState, useContext, type Dispatch, type JSX, type SetStateAction, createContext, useRef } from "react";
 import type { contextType, DataFetchedType, DBNode, NumberListNode, ProjectNode } from "./dashboardElement_types";
@@ -7,6 +7,7 @@ import Editor from 'react-simple-code-editor/src/index';
 import { highlight, languages } from 'prismjs';
 import 'prismjs/components/prism-clike';
 import 'prismjs/components/prism-javascript';
+import 'prismjs/components/prism-typescript';
 import 'prismjs/components/prism-markup';
 import 'prismjs/components/prism-jsx';
 import 'prismjs/components/prism-tsx';
@@ -17,7 +18,6 @@ import { isSortable, useSortable } from "@dnd-kit/react/sortable";
 import { fetchAddNode, fetchDeleteNode, fetchNodes, fetchNormalizeOrden, fetchUpdateNodes, fetchGetNodeName, type OrdenT } from "../../components/fetchData";
 import { DragDropProvider } from "@dnd-kit/react";
 import { move } from "@dnd-kit/helpers";
-// import './highlight.css';
 
 export default function DashboardProjectElement() {
   const [allData, setAllData] = useState<ProjectNode[]>([]);
@@ -118,7 +118,7 @@ export default function DashboardProjectElement() {
         setName={setName}
         project_id={project_id}
       />
-      <section className=" border p-2 flex" >
+      <section className="p-0 md:p-2 lg:p-4 flex  " >
 
         <DragDropProvider
           onDragEnd={event => {
@@ -156,7 +156,7 @@ export default function DashboardProjectElement() {
             setAllData(newArr)
           }}
         >
-          <div className="border p-5 ">
+          <div className="shadow border border-gray-200 mb-10 w-full pl-8 pr-2 md:pl-5 md:pr-5  ">
             {
               loading ? (
                 <div>loading...</div>
@@ -206,6 +206,7 @@ Number.prototype.countDecimals = function() {
   if (Math.floor(this.valueOf()) === this.valueOf()) return 0
   return this.toString().split(".")[1].length || 0
 }
+
 function ProjectNode({ node, setNewItem, allItems, sortIndex }: {
   node: ProjectNode,
   allItems: ProjectNode[],
@@ -269,7 +270,6 @@ function ProjectNode({ node, setNewItem, allItems, sortIndex }: {
     console.log(node.id)
   }, [node.state.edit])
 
-
   const NormalizeOrder = () => {
     const newArr = [...allItems];
     for (let i = 0; i < allItems.length - 1; i++) {
@@ -321,19 +321,26 @@ function ProjectNode({ node, setNewItem, allItems, sortIndex }: {
     })
   }
 
-
-
   return (
-    <div className="relative flex items-center group pl-15 " ref={ref} >
-      <div className="items-center absolute left-0 flex gap-1 group-hover:flex text-gray-600" ref={addButtonsRef}>
+    <div className={` relative flex items-center pl-0.5 group w-full md:bg-transparent md:pl-15 ${""}`} ref={ref} >
+      <div className={` 
+        py-1 lg:px-1 rounded-lg shadow
+        flex gap-1 items-center flex-col md:flex-row
+        text-gray-500 bg-gray-100 border border-gray-300 
+        absolute bottom-0 -left-7 md:-left-2 z-100
+        lg:opacity-0
+        group-hover:opacity-100 duration-150 
+        ${node.state.edit ? "opacity-100 lg:opacity-0" : "opacity-0"}`}
+        ref={addButtonsRef}
+      >
 
-        <button className="hover:bg-gray-200  hover:shadow-gray-300 hover:shadow-xs rounded cursor-pointer duration-200"
-          onMouseDown={() => addElement()}>
-          <AddIcon />
+        <button className="hover:bg-gray-200  hover:shadow-gray-300 stroke-gray-600 hover:shadow-xs rounded cursor-pointer duration-200"
+          onPointerDown={() => addElement(false)}>
+          <AddIcon className="size-6 opacity-60 stroke-2" />
         </button>
 
         <button className="hover:bg-gray-200 hover:shadow-gray-300 hover:shadow-2xs rounded cursor-grab duration-200 " ref={handleRef}>
-          <DotsMoveIcon className="size-6" />
+          <DotsMoveIcon className="size-6 opacity-60 stroke-0" />
         </button>
       </div>
 
@@ -373,6 +380,7 @@ function ProjectNode({ node, setNewItem, allItems, sortIndex }: {
     </div>
   )
 }
+
 function NodeString() {
   return (
     <>
@@ -380,21 +388,23 @@ function NodeString() {
     </>
   )
 }
-
 const LanguageMap: Record<string, Prism.Grammar> = {
   html: languages.html,
   css: languages.css,
   js: languages.js,
   jsx: languages.jsx,
+  tsx: languages.tsx,
   go: languages.go,
-  python: languages.python
+  python: languages.python,
+  ts: languages.ts
 }
-
 function NodeCode({ node, onUpdate }: {
   node: ProjectNode,
   onUpdate: (newItem: ProjectNode, toFetch?: Partial<DBNode>) => void
 }) {
   const containerEditorRef = useRef<HTMLDivElement>(null)
+  const editorRef = useRef<HTMLElement>(null)
+  const [copy, setCopy] = useState(false);
 
   if (node.type !== "code") {
     throw new Error("incorrect type")
@@ -418,26 +428,48 @@ function NodeCode({ node, onUpdate }: {
       textarea.focus()
     }
   }
+  const handleCopyTextare = async () => {
+    const textAreaText = containerEditorRef.current?.querySelector('textarea');
+    try {
+      if (!textAreaText) return
+      await navigator.clipboard.writeText(textAreaText.value)
+      setCopy(true)
+      setTimeout(() => setCopy(false), 1000)
+    } catch (err) {
+      setCopy(false)
+      console.error('error in copy:', err)
+    }
+  }
   return (
     <>
-      <div className="min-w-52  flex flex-col relative overflow-hidden rounded bg-black/90" ref={containerEditorRef} onClick={e => {
-        e.preventDefault();
-        handleFocusTextarea()
-      }
-      }>
-        <div className=" self-end text-sm text-white/60">
-          <select name="languages" defaultValue={node.language} onChange={e => {
-            onUpdate({ ...node, language: e.target.value });
-          }}
-            className="bg-black/90 cursor-pointer">
-            <option value="html">html</option>
-            <option value="css">css</option>
-            <option value="js">js</option>
-            <option value="python">python</option>
-            <option value="jsx">jsx</option>
-            <option value="go">go</option>
-          </select>
-        </div>
+      <div className="group min-w-52 flex flex-col relative overflow-hidden rounded-xl bg-black/90"
+        ref={containerEditorRef} onClick={e => {
+          e.preventDefault();
+          handleFocusTextarea()
+        }
+        }>
+        <section className="z-10 h-3 relative mt-2 mr-2  text-sm text-white/60 ">
+          <div className={`group/select right-0 flex absolute border rounded border-gray-500 gap-1 group-hover:opacity-100 duration-200 
+            ${node.state.edit ? "opacity-100" : "opacity-0"}`}>
+            <select name="languages" defaultValue={node.language} onChange={e => {
+              onUpdate({ ...node, language: e.target.value });
+            }} className="bg-black font-semibold cursor-pointer border border-transparent rounded hover:border-gray-500 hover:text-gray-300">
+              <option value="html">html</option>
+              <option value="css">css</option>
+              <option value="js">js</option>
+              <option value="ts">ts</option>
+              <option value="python">python</option>
+              <option value="jsx">jsx</option>
+              <option value="tsx">tsx</option>
+              <option value="go">go</option>
+
+            </select>
+            <button onClick={() => handleCopyTextare()}
+              className="group/copy p-1 border bg-black rounded border-black cursor-pointer hover:border-gray-500">
+              <CopyIcon className={` size-5 duration-150 ${copy ? "text-green-400" : "group-hover/copy:text-gray-300"}`} />
+            </button>
+          </div>
+        </section>
 
         <Editor
           placeholder="Type some code…"
@@ -448,13 +480,13 @@ function NodeCode({ node, onUpdate }: {
           onKeyDown={e => removeType(e)}
           highlight={(code) => highlight(code, lang, node.language || "js")}
           padding={20}
-          className="w-full text-gray-200"
+          style={{ fontFamily: 'monospace' }}
+          className="w-full text-gray-200 "
         />
       </div>
     </>
   )
 }
-
 function NodeTodo({ node }: { node: ProjectNode }) {
   const [completed, setCompleted] = useState(false)
 
@@ -484,7 +516,6 @@ function NodeList() {
     </>
   )
 }
-
 function NodeNumberList({ node, allItems, position, updateElement }: {
   node: NumberListNode,
   allItems: ProjectNode[],
@@ -521,10 +552,11 @@ function NodeNumberList({ node, allItems, position, updateElement }: {
 
   return (
     <SimpleEditText >
-      <div className="">{node.number}</div>
+      <div className="">{node.number}.</div>
     </SimpleEditText>
   )
 }
+
 function SimpleEditText({ children, textClass, parentClass }: {
   children?: JSX.Element,
   textClass?: string
@@ -538,7 +570,7 @@ function SimpleEditText({ children, textClass, parentClass }: {
   const { node, onUpdate, addFunc, onDelete, remaining, focusElement } = context
 
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const editRef = useRef<HTMLInputElement>(null)
+  const editRef = useRef<HTMLTextAreaElement>(null)
 
   const updateEditState = (bool: boolean) => {
     console.log(node)
@@ -558,6 +590,7 @@ function SimpleEditText({ children, textClass, parentClass }: {
 
   const addWithEnter = (e: React.KeyboardEvent) => {
     if (e.key == "Enter" && node.type !== "code") {
+      e.preventDefault()
       addFunc(false)
     }
   }
@@ -576,6 +609,10 @@ function SimpleEditText({ children, textClass, parentClass }: {
     }
   }
 
+  const focusTextArea = () => {
+    editRef.current?.focus()
+    editRef.current?.setSelectionRange(length, length)
+  }
   return (
     <div className=" w-full flex py-1 flex-col gap-3 relative text-gray-900">
 
@@ -584,28 +621,28 @@ function SimpleEditText({ children, textClass, parentClass }: {
         {
           node.state.edit ? (
             <>
-              <input type="text" value={node.data} ref={editRef} autoFocus name="input"
-                className={` field-sizing-content min-h-6 focus:outline-none w-full  ${textClass}}`}
-                placeholder="enter text "
+              <textarea value={node.data} ref={editRef} autoFocus name="input"
+                className={`resize-none field-sizing-content min-h-6 focus:outline-none w-full  ${textClass}} wrap-break-word`}
+                placeholder="Enter text "
                 onChange={e => onUpdate({ ...node, data: e.target.value })}
                 onBlur={() => updateEditState(false)}
+                onFocus={e => e.currentTarget.setSelectionRange(e.target.value.length, e.target.value.length)}
                 onKeyDown={e => {
                   addWithEnter(e)
                   removeType(e)
                   removeNode(e)
                 }}
               >
-              </input>
-              <p>{node.state.orden}</p>
+              </textarea>
             </>
           ) : (
-            <div className={`w-full h-full min-h-6 ${textClass}`}
-              aria-placeholder="add new element"
-              onClick={() => updateEditState(true)}>
+            <p className={`wrap-break-word w-full h-full min-h-6 ${textClass}`}
+              onClick={() => {
+                updateEditState(true);
+                focusTextArea()
+              }}>
               {node.data}
-              ..
-              order: {node.state.orden}
-            </div>
+            </p>
           )
         }
       </div>
@@ -627,8 +664,7 @@ function DropdownAddComponent({ updateType, dropdownRef }: {
 }) {
 
   return (
-    <section className="border border-gray-400 absolute top-10 bg-white w-60 min-h-10 z-50 
-    rounded-xl shadow-sm shadow-gray-400 flex font-normal flex-col text-gray-800 text-sm overflow-hidden" ref={dropdownRef} >
+    <section className="absolute top-10 bg-white w-60 min-h-10 z-50 rounded-xl shadow shadow-gray-400 flex font-normal flex-col text-gray-800 text-sm overflow-hidden" ref={dropdownRef} >
       <div className="pl-3 py-1 font-medium text-[0.8rem]">something</div>
       <DropdownAddComponentChild
         text="checklist"
@@ -661,7 +697,6 @@ function DropdownAddComponent({ updateType, dropdownRef }: {
     </section>
   )
 }
-
 function DropdownAddComponentChild({ children, func, text, smText }: {
   children: JSX.Element,
   text: string,

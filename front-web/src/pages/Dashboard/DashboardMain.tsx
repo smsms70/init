@@ -60,7 +60,7 @@ export default function DashboardPage() {
         name={dashboardName}
         setName={setDashboardName}
       />
-      <section className="grid grid-cols-3 px-7 gap-6 ">
+      <section className="grid mb-30 grid-cols-[repeat(auto-fit,minmax(250px,1fr))] px-7 gap-6 ">
         {
           !loading ? (
             error ? (
@@ -321,11 +321,11 @@ export function EditButtonComp({ deleteEnabled, handleDeleteElement, setEdit }: 
       ref={dropButtonRef}
       onClick={() => setDropdown(prev => !prev)}
     >
-      <DotsIcon className={`border border-gray-200 bg-gray-100 hover:shadow-sm size-6 hover:bg-gray-200 duration-200 ${dropdown && "bg-gray-200"}`} />
+      <DotsIcon className={`border border-gray-300 bg-gray-200 rounded hover:shadow-sm size-6 hover:bg-gray-300 duration-200 ${dropdown && "bg-gray-300"}`} />
       {
         dropdown && (
           <section
-            ref={dropBoxRef} className="absolute top-8 right-1 text-sm border border-gray-400 rounded bg-white py-1 px-0.5"
+            ref={dropBoxRef} className="absolute top-8 right-1 text-sm border border-gray-400 rounded bg-white py-1 px-1.5"
           >
             <div
               onClick={() => setEdit(true)} className="flex gap-1.5 items-center hover:bg-gray-200 duration-100 rounded p-0.5"

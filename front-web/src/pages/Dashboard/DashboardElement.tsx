@@ -328,9 +328,9 @@ function ProjectNode({ node, setNewItem, allItems, sortIndex }: {
         flex gap-1 items-center flex-col md:flex-row
         text-gray-500 bg-gray-100 border border-gray-300 
         absolute bottom-0 -left-7 md:-left-2 z-100
-        lg:opacity-0
+        md:opacity-0
         group-hover:opacity-100 duration-150 
-        ${node.state.edit ? "opacity-100 lg:opacity-0" : "opacity-0"}`}
+        ${node.state.edit ? "opacity-100 md:opacity-0" : "opacity-0"}`}
         ref={addButtonsRef}
       >
 

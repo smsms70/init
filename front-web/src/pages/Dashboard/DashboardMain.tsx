@@ -98,21 +98,21 @@ export default function DashboardPage() {
   )
 }
 
-export function ProjectHeader({ name, setName, project_id, onUpdate, deleteButton }: {
+export function ProjectHeader({ name, setName, project_id, deleteButton }: {
   name?: string
   setName?: React.Dispatch<SetStateAction<string>>
   project_id?: string
-  onUpdate?: (nodeId: number, updatedData: Partial<DBNode>) => void
   deleteButton?: boolean
 }) {
   const [edit, setEdit] = useState(false);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
+  const editBoxRef = useRef<HTMLTextAreaElement>(null);
 
 
   useEffect(() => {
     const updateHandler = async () => {
-      if (!onUpdate) return
+      if (!name && !project_id) return
       try {
         setLoading(true)
         await fetchUpdateNodes(Number(project_id), { Data: name })
@@ -123,38 +123,41 @@ export function ProjectHeader({ name, setName, project_id, onUpdate, deleteButto
         setLoading(false)
       }
     }
-    if (!edit && project_id && onUpdate) {
+    if (!edit && project_id && name) {
       updateHandler()
     }
   }, [edit])
 
   return (
-    <header className="p-3 pt-10 flex justify-between border-b m-4">
-      <div className="flex items-end ">
+    <header className="p-3 pt-10 flex justify-between border-b m-4 ">
+      <div className="flex items-end w-11/12 ">
         {
           edit ? (
-            <input type="text" value={name} autoFocus
+            <textarea value={name} autoFocus ref={editBoxRef}
               onBlur={() => setEdit(false)}
               onChange={(e) => setName && setName(e.target?.value)}
-              className="border-none active:appearance-none text-4xl"
-            ></input>
+              onFocus={e => e.currentTarget.setSelectionRange(e.target.value.length, e.target.value.length)}
+              onKeyDown={e => { if (e.key == "Enter") setEdit(false) }}
+              className="resize-none border-none w-full field-sizing-content outline-none overflow-hidden focus:outline-none  active:appearance-none text-4xl"
+            ></textarea>
           ) : (
-            <h2 className=" text-4xl">
+            <h2 className="w-full wrap-break-word text-4xl" onClick={() => setEdit(true)}>
               {name}
             </h2>
           )
         }
         {
           loading && (
-            <span className={`ml-10 font-semibold ${error ? "text-red-700" : "text-gray-700/60"}`}>
+            <p className={`ml-10  font-semibold ${error ? "text-red-700" : "text-gray-700/60"}`}>
               {error ? "Error" : "loading..."}
-            </span>
+            </p>
           )
         }
       </div>
       <EditButtonComp
         setEdit={setEdit}
         deleteEnabled={deleteButton}
+        editBoxRef={editBoxRef}
       />
     </header>
   )
@@ -167,6 +170,7 @@ function ProjectComp({ project, handleDeleteElement }: {
   const [edit, setEdit] = useState(false);
   const [name, setName] = useState(project.data);
   const prevName = useRef(project.data);
+  const editBoxRef = useRef<HTMLTextAreaElement>(null);
 
 
   const addFunc = async () => {
@@ -180,7 +184,6 @@ function ProjectComp({ project, handleDeleteElement }: {
   const handleOnKeyDown = (e: React.KeyboardEvent) => {
     if (e.key == "Enter") {
       addFunc()
-      setEdit(false)
     }
   }
 
@@ -191,41 +194,44 @@ function ProjectComp({ project, handleDeleteElement }: {
   }, [edit])
 
   return (
-    <section className="min-h-20 border border-gray-300 rounded-lg shadow">
-      <header className=" bg-primary/85 flex  rounded-t items-center 
-      group/parent has-[.algo:hover]:bg-primary">
+    <section className="min-h-20 w-full border border-gray-300 rounded-lg shadow">
+      <header className="flex rounded-t items-center group/parent 
+      has-[.algo:hover]:bg-primary bg-primary/85">
 
         {edit ? (
-          <input value={name} type="text" autoFocus
+          <textarea value={name} autoFocus ref={editBoxRef}
             onKeyDown={e => handleOnKeyDown(e)}
             onChange={e => setName(e.currentTarget?.value)}
-            className="text-lg p-1 w-full  focus:border-b-gray-800 focus:outline-none"
+            onFocus={e => e.currentTarget.setSelectionRange(e.target.value.length, e.target.value.length)}
+            className="resize-none field-sizing-content text-lg p-1 w-full focus:border-b-gray-800 focus:outline-none"
           >
-          </input>
+          </textarea>
         ) : (
-          <Link to={`./${project.Id}`} className="algo pl-3 p-1.5 flex-1 group/button ">
-            <div className="min-w- flex-1">
+          <Link to={`./${project.Id}`} className="min-w-0 flex-1 algo p-1.5 group/button ">
+            <div className="w-full wrap-break-word ">
               {name}
             </div>
           </Link>
         )}
 
-        {
-          edit && (
-            <button onClick={() => { addFunc(); setEdit(false) }} className="border p-1">
-              <AddIcon className="size-7 rounded shadow-sm bg-white" />
-            </button>
-          )
-        }
-        <div className={`flex-0 ml-auto hover:bg-primary ${edit && "hidden"}`}>
+        <div className={`hover:bg-primary ${edit && "hidden"}`}>
           < EditButtonComp
             setEdit={setEdit}
             handleDeleteElement={handleDeleteElement}
             deleteEnabled={true}
+            editBoxRef={editBoxRef}
           />
         </div>
+        {
+          edit && (
+            <button className="p-1"
+              onClick={() => addFunc()}
+            >
+              <AddIcon className="size-7 rounded shadow-sm bg-white" />
+            </button>
+          )
+        }
       </header>
-      <div></div>
     </section>
   )
 }
@@ -291,10 +297,11 @@ function AddProj({ onAddElement }: {
   )
 }
 
-export function EditButtonComp({ deleteEnabled, handleDeleteElement, setEdit }: {
+export function EditButtonComp({ deleteEnabled, handleDeleteElement, setEdit, editBoxRef }: {
   setEdit: React.Dispatch<SetStateAction<boolean>>
   handleDeleteElement?: () => void
   deleteEnabled?: boolean
+  editBoxRef: React.RefObject<HTMLTextAreaElement | null>
 }) {
   const [dropdown, setDropdown] = useState(false);
   const dropButtonRef = useRef<HTMLDivElement>(null);
@@ -305,7 +312,9 @@ export function EditButtonComp({ deleteEnabled, handleDeleteElement, setEdit }: 
       const target = event.target as Node;
       const isClickInButton = dropButtonRef.current?.contains(target)
       const isClickInBox = dropBoxRef.current?.contains(target)
-      if (!isClickInButton && !isClickInBox) {
+      const isClickInTextArea = editBoxRef.current?.contains(target)
+
+      if (!isClickInButton && !isClickInBox && !isClickInTextArea) {
         setDropdown(false)
         setEdit(false)
       }
@@ -316,19 +325,21 @@ export function EditButtonComp({ deleteEnabled, handleDeleteElement, setEdit }: 
     }
   }, [])
 
+  const handleEditTrue = () => {
+    setEdit(true);
+  }
   return (
-    <div className={`cursor-pointer flex relative items-center justify-center p-1 text-gray-800`}
-      ref={dropButtonRef}
-      onClick={() => setDropdown(prev => !prev)}
+    <div ref={dropButtonRef} onClick={() => setDropdown(prev => !prev)}
+      className={`cursor-pointer flex relative items-center justify-center p-1 text-gray-800`}
     >
       <DotsIcon className={`border border-gray-300 bg-gray-200 rounded hover:shadow-sm size-6 hover:bg-gray-300 duration-200 ${dropdown && "bg-gray-300"}`} />
       {
         dropdown && (
-          <section
-            ref={dropBoxRef} className="absolute top-8 right-1 text-sm border border-gray-400 rounded bg-white py-1 px-1.5"
+          <section ref={dropBoxRef}
+            className="absolute top-8 right-1 text-sm border border-gray-400 rounded bg-white py-1 px-1.5"
           >
-            <div
-              onClick={() => setEdit(true)} className="flex gap-1.5 items-center hover:bg-gray-200 duration-100 rounded p-0.5"
+            <div onClick={() => handleEditTrue()}
+              className="flex gap-1.5 items-center hover:bg-gray-200 duration-100 rounded p-0.5"
             >
 
               <EditPencilIcon className="size-5" />

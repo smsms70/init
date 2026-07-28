@@ -156,7 +156,7 @@ export default function DashboardProjectElement() {
             setAllData(newArr)
           }}
         >
-          <div className="shadow border border-gray-200 mb-10 w-full pl-8 pr-2 md:pl-5 md:pr-5  ">
+          <div className="shadow  border border-gray-200 mb-10 min-h-15  w-full py-2 pl-8 pr-2 md:pl-5 md:pr-5  ">
             {
               loading ? (
                 <div>loading...</div>

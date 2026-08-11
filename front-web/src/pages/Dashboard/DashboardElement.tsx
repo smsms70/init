@@ -1,5 +1,5 @@
 import { ProjectHeader } from "./DashboardMain"
-import { AddIcon, ArrowIcon, ChecklistIcon, CodeListIcon, DotListIcon, DotsMoveIcon, NumberListIcon, CopyIcon } from "../../assets/icons"
+import { AddIcon, ArrowIcon, DotsMoveIcon, CopyIcon } from "../../assets/icons"
 import { Link, useParams } from "react-router"
 import React, { useEffect, useState, useContext, type Dispatch, type JSX, type SetStateAction, createContext, useRef } from "react";
 import type { contextType, DataFetchedType, DBNode, NumberListNode, ProjectNode } from "./dashboardElement_types";
@@ -18,6 +18,7 @@ import { isSortable, useSortable } from "@dnd-kit/react/sortable";
 import { fetchAddNode, fetchDeleteNode, fetchNodes, fetchNormalizeOrden, fetchUpdateNodes, fetchGetNodeName, type OrdenT } from "../../components/fetchData";
 import { DragDropProvider } from "@dnd-kit/react";
 import { move } from "@dnd-kit/helpers";
+import { DropdownAddComponent } from "../../components/dropdown";
 
 export default function DashboardProjectElement() {
   const [allData, setAllData] = useState<ProjectNode[]>([]);
@@ -403,7 +404,7 @@ function NodeCode({ node, onUpdate }: {
   onUpdate: (newItem: ProjectNode, toFetch?: Partial<DBNode>) => void
 }) {
   const containerEditorRef = useRef<HTMLDivElement>(null)
-  const editorRef = useRef<HTMLElement>(null)
+  // const editorRef = useRef<HTMLElement>(null)
   const [copy, setCopy] = useState(false);
 
   if (node.type !== "code") {
@@ -654,69 +655,6 @@ function SimpleEditText({ children, textClass, parentClass }: {
           />
         )
       }
-    </div>
-  )
-}
-
-function DropdownAddComponent({ updateType, dropdownRef }: {
-  updateType: (item: ProjectNode["type"]) => void
-  dropdownRef: React.RefObject<HTMLDivElement | null>
-}) {
-
-  return (
-    <section className="absolute top-10 bg-white w-60 min-h-10 z-50 rounded-xl shadow shadow-gray-400 flex font-normal flex-col text-gray-800 text-sm overflow-hidden" ref={dropdownRef} >
-      <div className="pl-3 py-1 font-medium text-[0.8rem]">something</div>
-      <DropdownAddComponentChild
-        text="checklist"
-        smText="text with checkboxes"
-        func={() => updateType("todo")}
-      >
-        <ChecklistIcon className="size-5" />
-      </DropdownAddComponentChild>
-      <DropdownAddComponentChild
-        text="dot list"
-        smText="unordenated list"
-        func={() => updateType("list")}
-      >
-        <DotListIcon className="size-5" />
-      </DropdownAddComponentChild>
-      <DropdownAddComponentChild
-        text="code"
-        smText="code snippet"
-        func={() => updateType("code")}
-      >
-        <CodeListIcon className="size-5" />
-      </DropdownAddComponentChild>
-      <DropdownAddComponentChild
-        text="Number list"
-        smText="ordenated list"
-        func={() => updateType("number-list")}
-      >
-        <NumberListIcon className="size-5" />
-      </DropdownAddComponentChild>
-    </section>
-  )
-}
-function DropdownAddComponentChild({ children, func, text, smText }: {
-  children: JSX.Element,
-  text: string,
-  smText: string,
-  func: () => void
-}) {
-  // const childClass = "py-1 flex gap-3 items-center hover:bg-gray-200 hover:text-gray-800 duration-200 pl-1 cursor-pointer  ";
-
-  return (
-    <div className="py-1 flex gap-3 items-center hover:bg-gray-200 hover:text-gray-800 duration-200 pl-1 cursor-pointer  "
-      onMouseDown={() => func()}>
-      <div className=" p-2 rounded bg-gray-300">
-        {
-          children
-        }
-      </div>
-      <div>
-        <p>{text}</p>
-        <p className="text-[0.7rem] font-light">{smText}</p>
-      </div>
     </div>
   )
 }

@@ -8,6 +8,7 @@ import { fetchAddNode, fetchDeleteNode, fetchNodes, fetchNormalizeOrden, fetchUp
 import { DragDropProvider } from "@dnd-kit/react";
 import { move } from "@dnd-kit/helpers";
 import { DropdownAddComponent } from "../../components/dropdown";
+import { TextareaComp } from "../../components/textareaComp";
 import "./dashboardElement_prototypes";
 import { NodeCode } from './nodeComp_code.tsx'
 import { NodeList, NodeNumberList, NodeString, NodeTodo } from "./nodeComp_Basics.tsx";
@@ -425,19 +426,20 @@ export function SimpleEditText({ children, textClass, parentClass }: {
         {
           node.state.edit ? (
             <>
-              <textarea value={node.data} ref={editRef} autoFocus name="input"
-                className={`resize-none field-sizing-content min-h-6 focus:outline-none w-full  ${textClass} wrap-break-word`}
+              <TextareaComp
+                value={node.data}
+                ref={editRef}
+                name="input"
                 placeholder="Enter text "
-                onChange={e => onUpdate({ ...node, data: e.target.value })}
+                className={`min-h-6 ${textClass} wrap-break-word`}
+                onChange={data => onUpdate({ ...node, data })}
                 onBlur={() => updateEditState(false)}
-                onFocus={e => e.currentTarget.setSelectionRange(e.target.value.length, e.target.value.length)}
                 onKeyDown={e => {
                   addWithEnter(e)
                   removeType(e)
                   removeNode(e)
                 }}
-              >
-              </textarea>
+              />
             </>
           ) : (
             <p className={`wrap-break-word w-full h-full min-h-6 ${textClass}`}

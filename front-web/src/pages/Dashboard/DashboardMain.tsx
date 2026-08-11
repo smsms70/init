@@ -3,6 +3,7 @@ import { AddIcon, DeleteIcon, DotsIcon, EditPencilIcon } from "../../assets/icon
 import { Link } from "react-router"
 import { fetchAddParentNode, fetchDeleteNode, fetchParentsNodes, fetchUpdateNodes } from "../../components/fetchData"
 import type { DBNode } from "./dashboardElement_types"
+import { TextareaComp } from "../../components/textareaComp"
 
 export type ProjectType = {
   id?: number
@@ -133,13 +134,14 @@ export function ProjectHeader({ name, setName, project_id, deleteButton }: {
       <div className="flex items-end w-11/12 ">
         {
           edit ? (
-            <textarea value={name} autoFocus ref={editBoxRef}
+            <TextareaComp
+              value={name}
+              ref={editBoxRef}
+              onChange={setName}
               onBlur={() => setEdit(false)}
-              onChange={(e) => setName && setName(e.target?.value)}
-              onFocus={e => e.currentTarget.setSelectionRange(e.target.value.length, e.target.value.length)}
               onKeyDown={e => { if (e.key == "Enter") setEdit(false) }}
-              className="resize-none border-none w-full field-sizing-content outline-none overflow-hidden focus:outline-none  active:appearance-none text-4xl"
-            ></textarea>
+              className="border-none outline-none overflow-hidden active:appearance-none text-4xl"
+            />
           ) : (
             <h2 className="w-full wrap-break-word text-4xl" onClick={() => setEdit(true)}>
               {name}
@@ -199,13 +201,13 @@ function ProjectComp({ project, handleDeleteElement }: {
       has-[.algo:hover]:bg-primary bg-primary/85">
 
         {edit ? (
-          <textarea value={name} autoFocus ref={editBoxRef}
-            onKeyDown={e => handleOnKeyDown(e)}
-            onChange={e => setName(e.currentTarget?.value)}
-            onFocus={e => e.currentTarget.setSelectionRange(e.target.value.length, e.target.value.length)}
-            className="resize-none field-sizing-content text-lg p-1 w-full focus:border-b-gray-800 focus:outline-none"
-          >
-          </textarea>
+          <TextareaComp
+            value={name}
+            ref={editBoxRef}
+            onChange={setName}
+            onKeyDown={handleOnKeyDown}
+            className="text-lg p-1 focus:border-b-gray-800"
+          />
         ) : (
           <Link to={`./${project.Id}`} className="min-w-0 flex-1 algo p-1.5 group/button ">
             <div className="w-full wrap-break-word ">

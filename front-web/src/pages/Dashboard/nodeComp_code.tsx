@@ -1,7 +1,7 @@
 import { useRef, useState } from "react"
 import { CopyIcon } from "../../assets/icons"
 import Editor from 'react-simple-code-editor/src/index';
-import type { ProjectNode, DBNode } from "./dashboardElement_types";
+import type { ProjectNode } from "./dashboardElement_types";
 import { highlight, languages } from 'prismjs';
 import 'prismjs/components/prism-clike';
 import 'prismjs/components/prism-javascript';
@@ -12,6 +12,7 @@ import 'prismjs/components/prism-tsx';
 import 'prismjs/components/prism-go';
 import 'prismjs/components/prism-python';
 import 'prismjs/themes/prism-okaidia.css'
+import { useNodeContext } from "./nodeContext"
 
 const LanguageMap: Record<string, Prism.Grammar> = {
   html: languages.html,
@@ -23,10 +24,8 @@ const LanguageMap: Record<string, Prism.Grammar> = {
   python: languages.python,
   ts: languages.ts
 }
-export function NodeCode({ node, onUpdate }: {
-  node: ProjectNode,
-  onUpdate: (newItem: ProjectNode, toFetch?: Partial<DBNode>) => void
-}) {
+export function NodeCode() {
+  const { node, onUpdate } = useNodeContext()
   const containerEditorRef = useRef<HTMLDivElement>(null)
   const [copy, setCopy] = useState(false);
 

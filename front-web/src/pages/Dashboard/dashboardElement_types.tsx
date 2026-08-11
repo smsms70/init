@@ -37,6 +37,8 @@ export type User = {
 
 export type contextType = {
   node: ProjectNode
+  allItems: ProjectNode[]
+  sortIndex: number
   remaining: number
   onUpdate: (item: ProjectNode, DBNode?: Partial<DBNode>) => Promise<void> | void
   addFunc: (strict: boolean, type?: ProjectNode["type"]) => void

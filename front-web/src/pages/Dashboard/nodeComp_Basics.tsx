@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from "react"
-import { SimpleEditText } from "./DashboardElement"
-import type { NumberListNode, ProjectNode } from "./dashboardElement_types"
+import { useEffect, useRef, useState, type JSX } from "react"
+import type { ProjectNode } from "./dashboardElement_types"
+import { useNodeContext } from "./nodeContext"
+import { TextareaComp } from "../../components/textareaComp"
+import { DropdownAddComponent } from "../../components/dropdown"
 
 export function NodeString() {
   return (
@@ -9,7 +11,8 @@ export function NodeString() {
     </>
   )
 }
-export function NodeTodo({ node }: { node: ProjectNode }) {
+export function NodeTodo() {
+  const { node } = useNodeContext()
   const [completed, setCompleted] = useState(false)
 
   return (
@@ -37,24 +40,19 @@ export function NodeList() {
     </>
   )
 }
-export function NodeNumberList({ node, allItems, position, updateElement }: {
-  node: NumberListNode,
-  allItems: ProjectNode[],
-  position: number,
-  updateElement: (item: ProjectNode) => void
-}) {
+export function NodeNumberList() {
+  const { node, allItems, sortIndex, onUpdate } = useNodeContext()
   const prevNumber = useRef(0);
-
 
   //count numbers - don't store the order in db, it renders in front.
   useEffect(() => {
     const checkPrevNumber = () => {
-      if (position < 1) return 1
-      const prev = allItems[position - 1];
+      if (sortIndex < 1) return 1
+      const prev = allItems[sortIndex - 1];
       if (prev.type != "number-list") return 1
       if (!prev.number) return 1
 
-      const data = [...allItems].slice(0, position + 1)
+      const data = [...allItems].slice(0, sortIndex + 1)
       const newArr = [];
       for (let i = data.length - 1; i >= 0; i--) {
         if (data[i].type != "number-list") break
@@ -67,13 +65,110 @@ export function NodeNumberList({ node, allItems, position, updateElement }: {
 
     if (number != prevNumber.current) {
       prevNumber.current = number
-      updateElement({ ...node, number: number, state: { ...node.state } })
+      onUpdate({ ...node, number: number, state: { ...node.state } })
     }
-  }, [allItems, node, updateElement, position])
+  }, [allItems, node, onUpdate, sortIndex])
 
   return (
     <SimpleEditText >
       <div className="">{node.number}.</div>
     </SimpleEditText>
+  )
+}
+
+function SimpleEditText({ children, textClass, parentClass }: {
+  children?: JSX.Element,
+  textClass?: string
+  parentClass?: string
+}) {
+  const { node, onUpdate, addFunc, onDelete, remaining, focusElement } = useNodeContext()
+
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const editRef = useRef<HTMLTextAreaElement>(null)
+
+  const updateEditState = (bool: boolean) => {
+    console.log(node)
+    onUpdate({
+      ...node,
+      state: { ...node.state, edit: bool },
+    })
+  }
+
+  const updateType = (type: ProjectNode["type"]) => {
+    onUpdate({
+      ...node,
+      type: type,
+      state: { ...node.state, edit: true },
+    }, { Type: type })
+  }
+
+  const addWithEnter = (e: React.KeyboardEvent) => {
+    if (e.key == "Enter" && node.type !== "code") {
+      e.preventDefault()
+      addFunc(false)
+    }
+  }
+
+  const removeType = (e: React.KeyboardEvent) => {
+    if ((e.key == "Delete" || e.key == "Backspace") &&
+      !node.data && node.type !== "string") {
+      updateType("string")
+    }
+  }
+  const removeNode = (e: React.KeyboardEvent) => {
+    if ((e.key == "Delete" || e.key == "Backspace")
+      && !node.data && node.type == "string" && remaining > 1) {
+      focusElement()
+      onDelete(node)
+    }
+  }
+
+  const focusTextArea = () => {
+    editRef.current?.focus()
+    editRef.current?.setSelectionRange(editRef.current.value.length, editRef.current.value.length)
+  }
+  return (
+    <div className=" w-full flex py-1 flex-col gap-3 relative text-gray-900">
+
+      <div className={`flex gap-3 items-center min-h-6 w-full h-full cursor-text ${parentClass}`}>
+        {children}
+        {
+          node.state.edit ? (
+            <>
+              <TextareaComp
+                value={node.data}
+                ref={editRef}
+                name="input"
+                placeholder="Enter text "
+                className={`min-h-6 ${textClass} wrap-break-word`}
+                onChange={data => onUpdate({ ...node, data })}
+                onBlur={() => updateEditState(false)}
+                onKeyDown={e => {
+                  addWithEnter(e)
+                  removeType(e)
+                  removeNode(e)
+                }}
+              />
+            </>
+          ) : (
+            <p className={`wrap-break-word w-full h-full min-h-6 ${textClass}`}
+              onClick={() => {
+                updateEditState(true);
+                focusTextArea()
+              }}>
+              {node.data}
+            </p>
+          )
+        }
+      </div>
+      {
+        node.state.edit && node.type === "string" && !node.data && (
+          <DropdownAddComponent
+            dropdownRef={dropdownRef}
+            updateType={updateType}
+          />
+        )
+      }
+    </div>
   )
 }

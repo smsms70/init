@@ -1,17 +1,16 @@
 import { ProjectHeader } from "./DashboardMain"
 import { AddIcon, ArrowIcon, DotsMoveIcon } from "../../assets/icons"
 import { Link, useParams } from "react-router"
-import React, { useEffect, useState, useContext, type Dispatch, type JSX, type SetStateAction, createContext, useRef } from "react";
-import type { contextType, DataFetchedType, DBNode, ProjectNode } from "./dashboardElement_types";
+import React, { useEffect, useState, type Dispatch, type SetStateAction, useRef } from "react";
+import type { DataFetchedType, DBNode, ProjectNode } from "./dashboardElement_types";
 import { isSortable, useSortable } from "@dnd-kit/react/sortable";
 import { fetchAddNode, fetchDeleteNode, fetchNodes, fetchNormalizeOrden, fetchUpdateNodes, fetchGetNodeName, type OrdenT } from "../../components/fetchData";
 import { DragDropProvider } from "@dnd-kit/react";
 import { move } from "@dnd-kit/helpers";
-import { DropdownAddComponent } from "../../components/dropdown";
-import { TextareaComp } from "../../components/textareaComp";
-import "./dashboardElement_prototypes";
 import { NodeCode } from './nodeComp_code.tsx'
 import { NodeList, NodeNumberList, NodeString, NodeTodo } from "./nodeComp_Basics.tsx";
+import { NodeContext } from "./nodeContext";
+import "./dashboardElement_prototypes";
 
 export default function DashboardProjectElement() {
   const [allData, setAllData] = useState<ProjectNode[]>([]);
@@ -185,8 +184,6 @@ export default function DashboardProjectElement() {
   )
 }
 
-const DataContext = createContext<contextType | null>(null)
-
 function ProjectNode({ node, setNewItem, allItems, sortIndex }: {
   node: ProjectNode,
   allItems: ProjectNode[],
@@ -324,8 +321,10 @@ function ProjectNode({ node, setNewItem, allItems, sortIndex }: {
         </button>
       </div>
 
-      <DataContext value={{
+      <NodeContext value={{
         node: node,
+        allItems: allItems,
+        sortIndex: sortIndex,
         onUpdate: updateElement,
         addFunc: addElement,
         onDelete: deleteElement,
@@ -334,7 +333,7 @@ function ProjectNode({ node, setNewItem, allItems, sortIndex }: {
         remaining: allItems.length
       }}>
         {node.type == "todo" &&
-          <NodeTodo node={node} />
+          <NodeTodo />
         }
         {node.type == "string" &&
           <NodeString />
@@ -343,123 +342,12 @@ function ProjectNode({ node, setNewItem, allItems, sortIndex }: {
           <NodeList />
         }
         {node.type == "code" &&
-          <NodeCode node={node}
-            onUpdate={updateElement}
-
-          />
+          <NodeCode />
         }
         {node.type == "number-list" &&
-          <NodeNumberList
-            node={node}
-            allItems={allItems}
-            updateElement={updateElement}
-            position={sortIndex}
-          />
+          <NodeNumberList />
         }
-      </DataContext>
-    </div>
-  )
-}
-
-
-export function SimpleEditText({ children, textClass, parentClass }: {
-  children?: JSX.Element,
-  textClass?: string
-  parentClass?: string
-}) {
-  const context = useContext(DataContext)
-  if (!context) {
-    throw new Error('UserContext must be used within a Provider');
-  }
-
-  const { node, onUpdate, addFunc, onDelete, remaining, focusElement } = context
-
-  const dropdownRef = useRef<HTMLDivElement>(null)
-  const editRef = useRef<HTMLTextAreaElement>(null)
-
-  const updateEditState = (bool: boolean) => {
-    console.log(node)
-    onUpdate({
-      ...node,
-      state: { ...node.state, edit: bool },
-    })
-  }
-
-  const updateType = (type: ProjectNode["type"]) => {
-    onUpdate({
-      ...node,
-      type: type,
-      state: { ...node.state, edit: true },
-    }, { Type: type })
-  }
-
-  const addWithEnter = (e: React.KeyboardEvent) => {
-    if (e.key == "Enter" && node.type !== "code") {
-      e.preventDefault()
-      addFunc(false)
-    }
-  }
-
-  const removeType = (e: React.KeyboardEvent) => {
-    if ((e.key == "Delete" || e.key == "Backspace") &&
-      !node.data && node.type !== "string") {
-      updateType("string")
-    }
-  }
-  const removeNode = (e: React.KeyboardEvent) => {
-    if ((e.key == "Delete" || e.key == "Backspace")
-      && !node.data && node.type == "string" && remaining > 1) {
-      focusElement()
-      onDelete(node)
-    }
-  }
-
-  const focusTextArea = () => {
-    editRef.current?.focus()
-    editRef.current?.setSelectionRange(length, length)
-  }
-  return (
-    <div className=" w-full flex py-1 flex-col gap-3 relative text-gray-900">
-
-      <div className={`flex gap-3 items-center min-h-6 w-full h-full cursor-text ${parentClass}`}>
-        {children}
-        {
-          node.state.edit ? (
-            <>
-              <TextareaComp
-                value={node.data}
-                ref={editRef}
-                name="input"
-                placeholder="Enter text "
-                className={`min-h-6 ${textClass} wrap-break-word`}
-                onChange={data => onUpdate({ ...node, data })}
-                onBlur={() => updateEditState(false)}
-                onKeyDown={e => {
-                  addWithEnter(e)
-                  removeType(e)
-                  removeNode(e)
-                }}
-              />
-            </>
-          ) : (
-            <p className={`wrap-break-word w-full h-full min-h-6 ${textClass}`}
-              onClick={() => {
-                updateEditState(true);
-                focusTextArea()
-              }}>
-              {node.data}
-            </p>
-          )
-        }
-      </div>
-      {
-        node.state.edit && node.type === "string" && !node.data && (
-          <DropdownAddComponent
-            dropdownRef={dropdownRef}
-            updateType={updateType}
-          />
-        )
-      }
+      </NodeContext>
     </div>
   )
 }

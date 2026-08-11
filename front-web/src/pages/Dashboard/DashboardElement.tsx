@@ -1,24 +1,16 @@
 import { ProjectHeader } from "./DashboardMain"
-import { AddIcon, ArrowIcon, DotsMoveIcon, CopyIcon } from "../../assets/icons"
+import { AddIcon, ArrowIcon, DotsMoveIcon } from "../../assets/icons"
 import { Link, useParams } from "react-router"
 import React, { useEffect, useState, useContext, type Dispatch, type JSX, type SetStateAction, createContext, useRef } from "react";
-import type { contextType, DataFetchedType, DBNode, NumberListNode, ProjectNode } from "./dashboardElement_types";
-import Editor from 'react-simple-code-editor/src/index';
-import { highlight, languages } from 'prismjs';
-import 'prismjs/components/prism-clike';
-import 'prismjs/components/prism-javascript';
-import 'prismjs/components/prism-typescript';
-import 'prismjs/components/prism-markup';
-import 'prismjs/components/prism-jsx';
-import 'prismjs/components/prism-tsx';
-import 'prismjs/components/prism-go';
-import 'prismjs/components/prism-python';
-import 'prismjs/themes/prism-okaidia.css'
+import type { contextType, DataFetchedType, DBNode, ProjectNode } from "./dashboardElement_types";
 import { isSortable, useSortable } from "@dnd-kit/react/sortable";
 import { fetchAddNode, fetchDeleteNode, fetchNodes, fetchNormalizeOrden, fetchUpdateNodes, fetchGetNodeName, type OrdenT } from "../../components/fetchData";
 import { DragDropProvider } from "@dnd-kit/react";
 import { move } from "@dnd-kit/helpers";
 import { DropdownAddComponent } from "../../components/dropdown";
+import "./dashboardElement_prototypes";
+import { NodeCode } from './nodeComp_code.tsx'
+import { NodeList, NodeNumberList, NodeString, NodeTodo } from "./nodeComp_Basics.tsx";
 
 export default function DashboardProjectElement() {
   const [allData, setAllData] = useState<ProjectNode[]>([]);
@@ -198,16 +190,6 @@ export default function DashboardProjectElement() {
 
 const DataContext = createContext<contextType | null>(null)
 
-declare global {
-  interface Number {
-    countDecimals(): number;
-  }
-}
-Number.prototype.countDecimals = function() {
-  if (Math.floor(this.valueOf()) === this.valueOf()) return 0
-  return this.toString().split(".")[1].length || 0
-}
-
 function ProjectNode({ node, setNewItem, allItems, sortIndex }: {
   node: ProjectNode,
   allItems: ProjectNode[],
@@ -382,183 +364,8 @@ function ProjectNode({ node, setNewItem, allItems, sortIndex }: {
   )
 }
 
-function NodeString() {
-  return (
-    <>
-      <SimpleEditText />
-    </>
-  )
-}
-const LanguageMap: Record<string, Prism.Grammar> = {
-  html: languages.html,
-  css: languages.css,
-  js: languages.js,
-  jsx: languages.jsx,
-  tsx: languages.tsx,
-  go: languages.go,
-  python: languages.python,
-  ts: languages.ts
-}
-function NodeCode({ node, onUpdate }: {
-  node: ProjectNode,
-  onUpdate: (newItem: ProjectNode, toFetch?: Partial<DBNode>) => void
-}) {
-  const containerEditorRef = useRef<HTMLDivElement>(null)
-  // const editorRef = useRef<HTMLElement>(null)
-  const [copy, setCopy] = useState(false);
 
-  if (node.type !== "code") {
-    throw new Error("incorrect type")
-  }
-  const lang = LanguageMap[node.language || "js"]
-  const updateType = (type: ProjectNode["type"]) => {
-    onUpdate({
-      ...node,
-      type: type,
-      state: { ...node.state, edit: true },
-    }, { Type: type })
-  }
-  const removeType = (e: React.KeyboardEvent) => {
-    if ((e.key == "Delete" || e.key == "Backspace") && !node.data) {
-      updateType("string")
-    }
-  }
-  const handleFocusTextarea = () => {
-    const textarea = containerEditorRef.current?.querySelector('textarea');
-    if (textarea) {
-      textarea.focus()
-    }
-  }
-  const handleCopyTextare = async () => {
-    const textAreaText = containerEditorRef.current?.querySelector('textarea');
-    try {
-      if (!textAreaText) return
-      await navigator.clipboard.writeText(textAreaText.value)
-      setCopy(true)
-      setTimeout(() => setCopy(false), 1000)
-    } catch (err) {
-      setCopy(false)
-      console.error('error in copy:', err)
-    }
-  }
-  return (
-    <>
-      <div className="group min-w-52 flex flex-col relative overflow-hidden rounded-xl bg-black/90"
-        ref={containerEditorRef} onClick={e => {
-          e.preventDefault();
-          handleFocusTextarea()
-        }
-        }>
-        <section className="z-10 h-3 relative mt-2 mr-2  text-sm text-white/60 ">
-          <div className={`group/select right-0 flex absolute border rounded border-gray-500 gap-1 group-hover:opacity-100 duration-200 
-            ${node.state.edit ? "opacity-100" : "opacity-0"}`}>
-            <select name="languages" defaultValue={node.language} onChange={e => {
-              onUpdate({ ...node, language: e.target.value });
-            }} className="bg-black font-semibold cursor-pointer border border-transparent rounded hover:border-gray-500 hover:text-gray-300">
-              <option value="html">html</option>
-              <option value="css">css</option>
-              <option value="js">js</option>
-              <option value="ts">ts</option>
-              <option value="python">python</option>
-              <option value="jsx">jsx</option>
-              <option value="tsx">tsx</option>
-              <option value="go">go</option>
-
-            </select>
-            <button onClick={() => handleCopyTextare()}
-              className="group/copy p-1 border bg-black rounded border-black cursor-pointer hover:border-gray-500">
-              <CopyIcon className={` size-5 duration-150 ${copy ? "text-green-400" : "group-hover/copy:text-gray-300"}`} />
-            </button>
-          </div>
-        </section>
-
-        <Editor
-          placeholder="Type some code…"
-          value={node.data}
-          onValueChange={(code) => onUpdate({ ...node, data: code })}
-          onFocus={() => onUpdate({ ...node, state: { ...node.state, edit: true } })}
-          onBlur={() => onUpdate({ ...node, state: { ...node.state, edit: false } })}
-          onKeyDown={e => removeType(e)}
-          highlight={(code) => highlight(code, lang, node.language || "js")}
-          padding={20}
-          style={{ fontFamily: 'monospace' }}
-          className="w-full text-gray-200 "
-        />
-      </div>
-    </>
-  )
-}
-function NodeTodo({ node }: { node: ProjectNode }) {
-  const [completed, setCompleted] = useState(false)
-
-  return (
-    <>
-      <SimpleEditText
-        textClass={completed ? "line-through" : ""}
-      >
-        <div className="w-4 h-4 flex relative" onClick={() => setCompleted(prev => !prev)}>
-          {
-            node.type == "todo" && (
-              <input type="checkbox" ></input>
-            )
-          }
-        </div>
-      </SimpleEditText>
-    </>
-  )
-}
-function NodeList() {
-  return (
-    <>
-      <SimpleEditText
-      >
-        <div className="w-2 h-2 bg-black rounded-full"></div>
-      </SimpleEditText>
-    </>
-  )
-}
-function NodeNumberList({ node, allItems, position, updateElement }: {
-  node: NumberListNode,
-  allItems: ProjectNode[],
-  position: number,
-  updateElement: (item: ProjectNode) => void
-}) {
-  const prevNumber = useRef(0);
-
-
-  useEffect(() => {
-    const checkPrevNumber = () => {
-      if (position < 1) return 1
-      const prev = allItems[position - 1];
-      if (prev.type != "number-list") return 1
-      if (!prev.number) return 1
-      // return prev.number + 1
-
-      const data = [...allItems].slice(0, position + 1)
-      const newArr = [];
-      for (let i = data.length - 1; i >= 0; i--) {
-        if (data[i].type != "number-list") break
-        newArr.push(data[i])
-      }
-      return newArr.length
-    }
-
-    const number = checkPrevNumber();
-
-    if (number != prevNumber.current) {
-      prevNumber.current = number
-      updateElement({ ...node, number: number, state: { ...node.state } })
-    }
-  }, [allItems, node, updateElement, position])
-
-  return (
-    <SimpleEditText >
-      <div className="">{node.number}.</div>
-    </SimpleEditText>
-  )
-}
-
-function SimpleEditText({ children, textClass, parentClass }: {
+export function SimpleEditText({ children, textClass, parentClass }: {
   children?: JSX.Element,
   textClass?: string
   parentClass?: string
@@ -623,7 +430,7 @@ function SimpleEditText({ children, textClass, parentClass }: {
           node.state.edit ? (
             <>
               <textarea value={node.data} ref={editRef} autoFocus name="input"
-                className={`resize-none field-sizing-content min-h-6 focus:outline-none w-full  ${textClass}} wrap-break-word`}
+                className={`resize-none field-sizing-content min-h-6 focus:outline-none w-full  ${textClass} wrap-break-word`}
                 placeholder="Enter text "
                 onChange={e => onUpdate({ ...node, data: e.target.value })}
                 onBlur={() => updateEditState(false)}

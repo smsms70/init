@@ -94,10 +94,6 @@ export default function DashboardProjectElement() {
     updateData();
   }, [project_id])
 
-  useEffect(() => {
-    console.log("it here: ", allData)
-  }, [allData])
-
   return (
     <section className="">
       <Link to={"./.."}>
@@ -392,7 +388,7 @@ export function SimpleEditText({ children, textClass, parentClass }: {
     onUpdate({
       ...node,
       type: type,
-      state: { ...node.state },
+      state: { ...node.state, edit: true },
     }, { Type: type })
   }
 

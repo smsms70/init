@@ -64,6 +64,7 @@ export function NodeCode({ node, onUpdate }: {
       console.error('error in copy:', err)
     }
   }
+
   return (
     <>
       <div className="group min-w-52 flex flex-col relative overflow-hidden rounded-xl bg-black/90"
@@ -90,7 +91,7 @@ export function NodeCode({ node, onUpdate }: {
             </select>
             <button onClick={() => handleCopyTextare()}
               className="group/copy p-1 border bg-black rounded border-black cursor-pointer hover:border-gray-500">
-              <CopyIcon className={` size-5 duration-150 ${copy ? "text-green-400" : "group-hover/copy:text-gray-300"}`} />
+              <CopyIcon className={` size-5 duration-150 ${copy ? "text-green-500" : "group-hover/copy:text-gray-300"}`} />
             </button>
           </div>
         </section>

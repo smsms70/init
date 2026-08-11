@@ -4,6 +4,7 @@ data/foo-data.db
 data/
 data
 README.md
+todo.md
 
 #front - react
 front-web/node_modules

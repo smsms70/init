@@ -1,10 +1,10 @@
 services:
   backend:
-    build: 
+    build:
       context: ./back-go/
       dockerfile: dev.Dockerfile
     ports:
-    - "8080:8080"
+      - "8080:8080"
     environment:
       - ADMIN_PASSWORD=secret_password
       - ADMIN_USER=admin
@@ -19,15 +19,15 @@ services:
       - ./data:/app/data
 
   frontend:
-    build: 
+    build:
       context: ./front-web/
       dockerfile: dev.Dockerfile
     depends_on:
       - backend
-    environment: 
+    environment:
       - API_PROXY_TARGET=http://backend:8080
-    ports: 
-    - "5173:5173"
+    ports:
+      - "5173:5173"
     develop:
       watch:
         - action: sync

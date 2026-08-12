@@ -77,12 +77,13 @@ func AddParentNode(c *gin.Context) {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
-	if err := todoModels.AddParentNode(body.Data); err != nil {
+	lastId, err := todoModels.AddParentNode(body.Data)
+	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(200, gin.H{"message": "parent node created"})
+	c.JSON(200, gin.H{"id": lastId})
 
 }
 

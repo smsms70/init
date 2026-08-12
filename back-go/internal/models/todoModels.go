@@ -129,11 +129,14 @@ func AddNode(id string, newNode AddNodeType) (int64, error) {
 	return LastInserId, err
 }
 
-func AddParentNode(data string) error {
+func AddParentNode(data string) (int64, error) {
 	insertSQL := `insert into nodes(data, type, parent_id) values(?, "parent_node", NULL)`
-	_, err := config.DB.Exec(insertSQL, data)
+	result, err := config.DB.Exec(insertSQL, data)
+	if err != nil {
+		return 0, err
+	}
 
-	return err
+	return result.LastInsertId()
 }
 
 type UpdatedNode struct {

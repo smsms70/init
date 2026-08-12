@@ -1,7 +1,7 @@
 import { ProjectHeader } from "./DashboardMain"
 import { AddIcon, ArrowIcon, DotsMoveIcon } from "../../assets/icons"
 import { Link, useParams } from "react-router"
-import React, { useEffect, useState, type Dispatch, type SetStateAction, useRef } from "react";
+import { useEffect, useState, type Dispatch, type SetStateAction, useRef } from "react";
 import type { DataFetchedType, DBNode, ProjectNode } from "./dashboardElement_types";
 import { isSortable, useSortable } from "@dnd-kit/react/sortable";
 import { fetchAddNode, fetchDeleteNode, fetchNodes, fetchNormalizeOrden, fetchUpdateNodes, fetchGetNodeName, type OrdenT } from "../../components/fetchData";
@@ -27,8 +27,6 @@ export default function DashboardProjectElement() {
       Number(project_id),
       { Type: type, Orden: (newOrden).toString(), Data: "" }
     )
-
-    console.log("id is: ", data.id)
 
     const newItem: ProjectNode = {
       class: "basic-blocks",
@@ -68,7 +66,6 @@ export default function DashboardProjectElement() {
     const getParentNode = async () => {
       if (project_id) {
         const parent_name = await fetchGetNodeName(project_id)
-        console.log(parent_name)
         setName(parent_name)
       }
     }
@@ -78,7 +75,6 @@ export default function DashboardProjectElement() {
       try {
         const Data = await fetchNodes(project_id)
 
-        console.log(Data)
         if (Data) {
           const data = mapFetchedDataToNode(Data)
           const orderData = data.sort((a, b) => a.state.orden - b.state.orden)
@@ -221,7 +217,6 @@ function ProjectNode({ node, setNewItem, allItems, sortIndex }: {
     )
 
     const id = addedNode.id
-    console.log('the new id is:', addedNode, 'last one is: ', id)
 
     const newItem: ProjectNode = {
       class: "basic-blocks",
@@ -237,14 +232,12 @@ function ProjectNode({ node, setNewItem, allItems, sortIndex }: {
   useEffect(() => {
     const updateDataState = async () => {
       if (!node.state.edit && node.data != dataPrevState.current) {
-        console.log('updated using edit effect')
         const fetched = await fetchUpdateNodes(node.id, { Data: node.data })
         if (fetched.message != 'updated') return
         dataPrevState.current = node.data
       }
     }
     updateDataState()
-    console.log(node.id)
   }, [node.state.edit])
 
   const NormalizeOrder = () => {
@@ -261,7 +254,6 @@ function ProjectNode({ node, setNewItem, allItems, sortIndex }: {
         arrIds.push({ Id: JSON.stringify(item.id) })
       })
       const data: OrdenT = { ArrIds: arrIds }
-      console.log(data)
       fetchNormalizeOrden(data)
       NormalizeOrder()
     }
@@ -277,7 +269,7 @@ function ProjectNode({ node, setNewItem, allItems, sortIndex }: {
   }
 
   const updateElement = async (newItem: ProjectNode, toFetch?: Partial<DBNode>) => {
-    if (toFetch) { await fetchUpdateNodes(newItem.id, toFetch); console.log('here') }
+    if (toFetch) await fetchUpdateNodes(newItem.id, toFetch)
 
     setNewItem(prev =>
       prev.map(item => item.id === newItem.id ? newItem : item)

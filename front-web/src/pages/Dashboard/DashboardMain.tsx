@@ -49,9 +49,6 @@ export default function DashboardPage() {
     const response = await fetchDeleteNode(item)
     console.log(response)
     console.log(data, item)
-    // const newArr = [...data]
-    // const arr = newArr.filter(prev => prev.Id !== item)
-    // console.log(arr)
     setData(prev => prev.filter(prevItem => prevItem.Id !== item))
   }
 
@@ -100,7 +97,7 @@ export default function DashboardPage() {
 }
 
 export function ProjectHeader({ name, setName, project_id, deleteButton }: {
-  name?: string
+  name: string
   setName?: React.Dispatch<SetStateAction<string>>
   project_id?: string
   deleteButton?: boolean
@@ -176,7 +173,6 @@ function ProjectComp({ project, handleDeleteElement }: {
 
 
   const addFunc = async () => {
-    console.log('added')
     const data = await fetchUpdateNodes(project.Id, { Data: name })
     prevName.current = name;
     console.log(data)

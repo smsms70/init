@@ -2,70 +2,11 @@ import { useEffect, useState } from "react"
 import { AddIcon, ArrowUpIcon, PersonIcon } from "../assets/icons"
 import { Link, useNavigate, useParams } from "react-router"
 import { fetchAddParentNode, fetchParentsNodes } from "./fetchData"
+import { AddElement } from "./AddElement"
 
 type ParentNodeType = {
   Id: number
   data: string
-}
-
-function AddProject({ onAdd }: {
-  onAdd: (data: string) => Promise<void>
-}) {
-  const [adding, setAdding] = useState(false)
-  const [newName, setNewName] = useState("")
-
-  const handleAdd = async (data: string) => {
-    if (!data.trim()) return
-    try {
-      await onAdd(data)
-      setNewName("")
-      setAdding(false)
-    } catch (err) {
-      console.error("error adding parent: ", err)
-    }
-  }
-
-  return (
-    <>
-      <button
-        onClick={() => setAdding(true)}
-        className="mt-2 flex cursor-pointer items-center gap-1.5 rounded p-1.5 text-gray-300 hover:bg-white/10 hover:text-white"
-      >
-        <AddIcon className="size-4" />
-        <span>New</span>
-      </button>
-      {adding && (
-        <div className="mb-2 flex w-full flex-col gap-2 rounded border border-white/20 p-2">
-          <input
-            value={newName}
-            onChange={e => setNewName(e.target.value)}
-            onKeyDown={e => {
-              if (e.key === "Enter") handleAdd(newName)
-              if (e.key === "Escape") { setAdding(false); setNewName("") }
-            }}
-            autoFocus
-            type="text"
-            placeholder="Project name"
-            className="w-full rounded bg-gray-700/50 p-1 outline-none placeholder:text-gray-400"
-          />
-          <div className="flex gap-2">
-            <button
-              onClick={() => handleAdd(newName)}
-              className="cursor-pointer rounded bg-white/10 px-2 py-0.5 hover:bg-white/20"
-            >
-              Add
-            </button>
-            <button
-              onClick={() => { setAdding(false); setNewName("") }}
-              className="cursor-pointer rounded px-2 py-0.5 hover:bg-white/20"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
-    </>
-  )
 }
 
 export function Sidebar({ isOpen, setIsOpen }: {
@@ -151,7 +92,20 @@ export function Sidebar({ isOpen, setIsOpen }: {
                 <p>No projects</p>
               )
             )}
-            <AddProject onAdd={handleAdd} />
+            <AddElement
+              onAdd={handleAdd}
+              placeholder="Project name"
+              triggerClassName="mt-2 flex cursor-pointer items-center gap-1.5 rounded p-1.5 text-gray-300 hover:bg-white/10 hover:text-white"
+              formClassName="mb-2 flex w-full flex-col gap-2 rounded border border-white/20 p-2"
+              inputClassName="w-full rounded bg-gray-700/50 p-1 outline-none placeholder:text-gray-400"
+              addButtonClassName="cursor-pointer rounded bg-white/10 px-2 py-0.5 hover:bg-white/20"
+              cancelButtonClassName="cursor-pointer rounded px-2 py-0.5 hover:bg-white/20"
+            >
+              <>
+                <AddIcon className="size-4" />
+                <span>New</span>
+              </>
+            </AddElement>
           </nav>
         </div>
       )}

@@ -5,6 +5,7 @@ import { fetchAddParentNode, fetchDeleteNode, fetchParentsNodes, fetchUpdateNode
 import type { DBNode } from "./dashboardElement_types"
 import { TextareaComp } from "../../components/textareaComp"
 import { Sidebar } from "../../components/Sidebar"
+import { AddElement } from "../../components/AddElement"
 
 export type ProjectType = {
   id?: number
@@ -81,9 +82,16 @@ export default function DashboardPage() {
                     ))
                   }
                   {
-                    <AddProj
-                      onAddElement={addElement}
-                    />
+                    <AddElement
+                      onAdd={name => addElement({ Data: name })}
+                      triggerClassName="w-full h-full min-h-20 flex justify-center rounded items-center group duration-100 border border-gray-300 shadow-sm hover:bg-primary cursor-pointer"
+                      formClassName="flex flex-col group group-has-focus:border-gray-400 border-gray-200 gap-3 p-3 align-center justify-center bg-white h-fit py-2"
+                      inputClassName="text-lg p-1 focus:border-b-gray-800 focus:outline-none border border-gray-200"
+                      addButtonClassName="border rounded w-fit px-2 py-1 self-center cursor-pointer bg-white"
+                      showCancel={false}
+                    >
+                      <AddIcon className="size-20 duration-100 text-primary group-hover:text-white" />
+                    </AddElement>
                   }
                 </>
               )
@@ -236,67 +244,6 @@ function ProjectComp({ project, handleDeleteElement }: {
         }
       </header>
     </section>
-  )
-}
-
-function AddProj({ onAddElement }: {
-  onAddElement: (item: Pick<DBNode, "Data">) => void
-}) {
-  const [name, setName] = useState("");
-  const [edit, setEdit] = useState(false)
-  const addButtonRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const handleAdd = (data: string) => {
-    onAddElement({ Data: data })
-    setEdit(false)
-    setName("")
-  }
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node;
-
-      const isClickInside = addButtonRef.current?.contains(target);
-      if (!isClickInside) {
-        setEdit(false)
-      } else {
-        inputRef.current?.focus()
-      }
-    }
-
-    document.body.addEventListener("mousedown", handleClickOutside)
-    return () => {
-      document.body.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [])
-
-  return (
-    <div ref={addButtonRef} className={`flex justify-center rounded items-center group duration-100 border border-gray-300 shadow-sm 
-      ${!edit ? "hover:bg-primary min-h-20 cursor-pointer " : "h-fit py-2"}`}
-    >
-      {
-        edit ? (
-          <section className="flex flex-col group group-has-focus:border-gray-400 border-gray-200  gap-3 p-3 align-center justify-center bg-white">
-            <input value={name} onChange={e => setName(e.target?.value)}
-              // onBlur={() => setEdit(false)}
-              autoFocus type="text"
-              className="text-lg p-1  focus:border-b-gray-800 focus:outline-none border  border-gray-200"
-              ref={inputRef}
-            >
-            </input>
-            <button className="border rounded w-fit px-2 py-1 self-center cursor-pointer bg-white" onClick={() => handleAdd(name)}>
-              Add
-            </button>
-          </section>
-        ) : (
-          <div className="w-full h-full flex justify-center items-center" onClick={() => setEdit(true)}>
-            <div className="">
-              <AddIcon className="size-20 duration-100 text-primary group-hover:text-white" />
-            </div>
-          </div>
-        )
-      }
-    </div>
   )
 }
 

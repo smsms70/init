@@ -11,6 +11,7 @@ import { NodeCode } from './nodeComp_code.tsx'
 import { NodeList, NodeNumberList, NodeString, NodeTodo } from "./nodeComp_Basics.tsx";
 import { NodeContext } from "./nodeContext";
 import "./dashboardElement_prototypes";
+import { Sidebar } from "../../components/Sidebar"
 
 export default function DashboardProjectElement() {
   const [allData, setAllData] = useState<ProjectNode[]>([]);
@@ -18,6 +19,7 @@ export default function DashboardProjectElement() {
   const [error, setError] = useState(false)
   const { project_id } = useParams()
   const [name, setName] = useState("")
+  const [sidebarOpen, setSidebarOpen] = useState(true)
 
   const addElement = async () => {
     const type = "string";
@@ -91,90 +93,93 @@ export default function DashboardProjectElement() {
   }, [project_id])
 
   return (
-    <section className="">
-      <Link to={"./.."}>
-        <div className="w-10 h-10 absolute top-0 rotate-180 flex items-center justify-center bg-primary">
-          <ArrowIcon />
-        </div>
-      </Link>
-
-      <ProjectHeader
-        name={name}
-        setName={setName}
-        project_id={project_id}
-      />
-      <section className="p-0 md:p-2 lg:p-4 flex  " >
-
-        <DragDropProvider
-          onDragEnd={event => {
-            if (event.canceled) return
-            const { source } = event.operation
-            if (!isSortable(source)) return
-
-            if (source.initialIndex == source.index) return
-
-            const prevItem = source.index > 0 ? allData[source.index - 1] : undefined;
-            const currentItem = allData.find(item => item.id == source.id)
-            const nextItem = allData[source.index + 1];
-            const targetItem = allData[source.index];
-
-            const newOrden = (nextItem && prevItem && currentItem) ? (
-              currentItem.state.orden < targetItem.state.orden
-                ?
-                (targetItem.state.orden + nextItem.state.orden) / 2
-                :
-                (targetItem.state.orden + prevItem.state.orden) / 2
-            ) : (
-              (prevItem) ?
-                targetItem.state.orden + 1 :
-                targetItem.state.orden - 1
-            )
-
-            fetchUpdateNodes(Number(source.id), { Orden: (newOrden).toString() })
-
-            const newData = allData.map(item =>
-              item.id == source.id ?
-                { ...item, state: { ...item.state, orden: newOrden } } :
-                item
-            )
-            const newArr = move(newData, event)
-            setAllData(newArr)
-          }}
-        >
-          <div className="shadow  border border-gray-200 mb-10 min-h-15  w-full py-2 pl-8 pr-2 md:pl-5 md:pr-5  ">
-            {
-              loading ? (
-                <div>loading...</div>
-              ) : (
-                error ? (
-                  <div>error</div>
-                ) : (
-                  <>
-                    {
-                      allData && allData.map((e, idx) => (
-                        <ProjectNode
-                          key={e.id}
-                          node={e}
-                          allItems={allData}
-                          setNewItem={setAllData}
-                          sortIndex={idx}
-                        />
-                      ))
-                    }
-                    {
-                      !allData.length &&
-                      <button onClick={() => addElement()}
-                        className="w-40 rounded flex justify-center cursor-pointer hover:scale-105 duration-75 border border-gray-300 ">
-                        <AddIcon className="group size-6 stroke-gray-400" />
-                      </button>
-                    }
-
-                  </>
-                )
-              )
-            }
+    <section className="flex min-h-screen">
+      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+      <section className={`flex-1 p-4 ${sidebarOpen ? "ml-64" : "ml-16"} transition-[margin-left] duration-150 ease-out`}>
+        <Link to={"./.."}>
+          <div className="w-10 h-10 absolute top-0 rotate-180 flex items-center justify-center bg-primary">
+            <ArrowIcon />
           </div>
-        </DragDropProvider>
+        </Link>
+
+        <ProjectHeader
+          name={name}
+          setName={setName}
+          project_id={project_id}
+        />
+        <section className="p-0 md:p-2 lg:p-4 flex  " >
+
+          <DragDropProvider
+            onDragEnd={event => {
+              if (event.canceled) return
+              const { source } = event.operation
+              if (!isSortable(source)) return
+
+              if (source.initialIndex == source.index) return
+
+              const prevItem = source.index > 0 ? allData[source.index - 1] : undefined;
+              const currentItem = allData.find(item => item.id == source.id)
+              const nextItem = allData[source.index + 1];
+              const targetItem = allData[source.index];
+
+              const newOrden = (nextItem && prevItem && currentItem) ? (
+                currentItem.state.orden < targetItem.state.orden
+                  ?
+                  (targetItem.state.orden + nextItem.state.orden) / 2
+                  :
+                  (targetItem.state.orden + prevItem.state.orden) / 2
+              ) : (
+                (prevItem) ?
+                  targetItem.state.orden + 1 :
+                  targetItem.state.orden - 1
+              )
+
+              fetchUpdateNodes(Number(source.id), { Orden: (newOrden).toString() })
+
+              const newData = allData.map(item =>
+                item.id == source.id ?
+                  { ...item, state: { ...item.state, orden: newOrden } } :
+                  item
+              )
+              const newArr = move(newData, event)
+              setAllData(newArr)
+            }}
+          >
+            <div className="shadow  border border-gray-200 mb-10 min-h-15  w-full py-2 pl-8 pr-2 md:pl-5 md:pr-5  ">
+              {
+                loading ? (
+                  <div>loading...</div>
+                ) : (
+                  error ? (
+                    <div>error</div>
+                  ) : (
+                    <>
+                      {
+                        allData && allData.map((e, idx) => (
+                          <ProjectNode
+                            key={e.id}
+                            node={e}
+                            allItems={allData}
+                            setNewItem={setAllData}
+                            sortIndex={idx}
+                          />
+                        ))
+                      }
+                      {
+                        !allData.length &&
+                        <button onClick={() => addElement()}
+                          className="w-40 rounded flex justify-center cursor-pointer hover:scale-105 duration-75 border border-gray-300 ">
+                          <AddIcon className="group size-6 stroke-gray-400" />
+                        </button>
+                      }
+
+                    </>
+                  )
+                )
+              }
+            </div>
+          </DragDropProvider>
+        </section>
       </section>
     </section>
   )

@@ -4,6 +4,7 @@ import { Link } from "react-router"
 import { fetchAddParentNode, fetchDeleteNode, fetchParentsNodes, fetchUpdateNodes } from "../../components/fetchData"
 import type { DBNode } from "./dashboardElement_types"
 import { TextareaComp } from "../../components/textareaComp"
+import { Sidebar } from "../../components/Sidebar"
 
 export type ProjectType = {
   id?: number
@@ -19,8 +20,9 @@ type ProjectNodeType = {
 export default function DashboardPage() {
   const [data, setData] = useState<ProjectNodeType[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("")
+  const [error, setError] = useState("");
   const [dashboardName, setDashboardName] = useState("dashboardName");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const updateData = async () => {
     try {
@@ -53,44 +55,47 @@ export default function DashboardPage() {
   }
 
   return (
-    <section>
-      <ProjectHeader
-        name={dashboardName}
-        setName={setDashboardName}
-      />
-      <section className="grid mb-30 grid-cols-[repeat(auto-fit,minmax(250px,1fr))] px-7 gap-6 ">
-        {
-          !loading ? (
-            error ? (
-              <div className="border text-red-800/80 font-bold">
-                Error: {JSON.stringify(error)}
-              </div>
-            ) : (
-              <>
-                {
-                  data && data.map((proj) => (
-                    <ProjectComp
-                      key={proj.Id}
-                      project={proj}
-                      handleDeleteElement={() => handleDeleteElement(proj.Id)}
+    <section className="flex min-h-screen">
+      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+      <section className={`flex-1 flex flex-col ${sidebarOpen ? "ml-64" : "ml-16"} min-h-screen p-8 transition-[margin-left] duration-150 ease-out`}>
+        <ProjectHeader
+          name={dashboardName}
+          setName={setDashboardName}
+        />
+        <section className="grid mb-30 grid-cols-[repeat(auto-fit,minmax(250px,1fr))] px-7 gap-6 ">
+          {
+            !loading ? (
+              error ? (
+                <div className="border text-red-800/80 font-bold">
+                  Error: {JSON.stringify(error)}
+                </div>
+              ) : (
+                <>
+                  {
+                    data && data.map((proj) => (
+                      <ProjectComp
+                        key={proj.Id}
+                        project={proj}
+                        handleDeleteElement={() => handleDeleteElement(proj.Id)}
+                      />
+                    ))
+                  }
+                  {
+                    <AddProj
+                      onAddElement={addElement}
                     />
-                  ))
-                }
-                {
-                  <AddProj
-                    onAddElement={addElement}
-                  />
-                }
-              </>
+                  }
+                </>
+              )
+            ) : (
+              <div>
+                Loading...
+              </div>
             )
-          ) : (
-            <div>
-              Loading...
-            </div>
-          )
-        }
-        {
-        }
+          }
+          {
+          }
+        </section>
       </section>
     </section>
   )

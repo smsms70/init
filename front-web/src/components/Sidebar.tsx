@@ -1,11 +1,71 @@
 import { useEffect, useState } from "react"
-import { ArrowUpIcon, PersonIcon } from "../assets/icons"
-import { Link, useParams } from "react-router"
-import { fetchParentsNodes } from "./fetchData"
+import { AddIcon, ArrowUpIcon, PersonIcon } from "../assets/icons"
+import { Link, useNavigate, useParams } from "react-router"
+import { fetchAddParentNode, fetchParentsNodes } from "./fetchData"
 
 type ParentNodeType = {
   Id: number
   data: string
+}
+
+function AddProject({ onAdd }: {
+  onAdd: (data: string) => Promise<void>
+}) {
+  const [adding, setAdding] = useState(false)
+  const [newName, setNewName] = useState("")
+
+  const handleAdd = async (data: string) => {
+    if (!data.trim()) return
+    try {
+      await onAdd(data)
+      setNewName("")
+      setAdding(false)
+    } catch (err) {
+      console.error("error adding parent: ", err)
+    }
+  }
+
+  return (
+    <>
+      <button
+        onClick={() => setAdding(true)}
+        className="mt-2 flex cursor-pointer items-center gap-1.5 rounded p-1.5 text-gray-300 hover:bg-white/10 hover:text-white"
+      >
+        <AddIcon className="size-4" />
+        <span>New</span>
+      </button>
+      {adding && (
+        <div className="mb-2 flex w-full flex-col gap-2 rounded border border-white/20 p-2">
+          <input
+            value={newName}
+            onChange={e => setNewName(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === "Enter") handleAdd(newName)
+              if (e.key === "Escape") { setAdding(false); setNewName("") }
+            }}
+            autoFocus
+            type="text"
+            placeholder="Project name"
+            className="w-full rounded bg-gray-700/50 p-1 outline-none placeholder:text-gray-400"
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleAdd(newName)}
+              className="cursor-pointer rounded bg-white/10 px-2 py-0.5 hover:bg-white/20"
+            >
+              Add
+            </button>
+            <button
+              onClick={() => { setAdding(false); setNewName("") }}
+              className="cursor-pointer rounded px-2 py-0.5 hover:bg-white/20"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  )
 }
 
 export function Sidebar({ isOpen, setIsOpen }: {
@@ -17,6 +77,7 @@ export function Sidebar({ isOpen, setIsOpen }: {
   const [parents, setParents] = useState<ParentNodeType[]>([])
   const [loading, setLoading] = useState(true)
   const { project_id } = useParams()
+  const navigate = useNavigate()
 
   const sidebarOpen = isOpen ?? open
   const toggleOpen = setIsOpen ?? setOpen
@@ -34,6 +95,13 @@ export function Sidebar({ isOpen, setIsOpen }: {
     }
     update()
   }, [])
+
+  const handleAdd = async (data: string) => {
+    const { id } = await fetchAddParentNode({ Data: data })
+    const updated = await fetchParentsNodes()
+    setParents(updated)
+    navigate(`/dashboard/${id}`)
+  }
 
   return (
     <aside
@@ -54,13 +122,15 @@ export function Sidebar({ isOpen, setIsOpen }: {
       {sidebarOpen && (
         <div className="p-4 text-sm">
           <nav>
-            <button
-              onClick={() => setProjectsOpen(!projectsOpen)}
-              className="outline-none mb-2 group flex w-full cursor-pointer items-center justify-between font-medium text-gray-300 hover:text-white"
-            >
-              <span>Projects</span>
-              <ArrowUpIcon className={`size-4 duration-200 group-hover:bg-white/20 rounded ${projectsOpen ? "rotate-180 " : "rotate-90"}`} />
-            </button>
+            <div className="mb-2 flex w-full items-center justify-between">
+              <button
+                onClick={() => setProjectsOpen(!projectsOpen)}
+                className="outline-none group flex w-full cursor-pointer items-center justify-between font-medium text-gray-300 hover:text-white"
+              >
+                <span>Projects</span>
+                <ArrowUpIcon className={`size-4 duration-200 group-hover:bg-white/20 rounded ${projectsOpen ? "rotate-180 " : "rotate-90"}`} />
+              </button>
+            </div>
             {projectsOpen && (
               loading ? (
                 <p>Loading...</p>
@@ -81,6 +151,7 @@ export function Sidebar({ isOpen, setIsOpen }: {
                 <p>No projects</p>
               )
             )}
+            <AddProject onAdd={handleAdd} />
           </nav>
         </div>
       )}

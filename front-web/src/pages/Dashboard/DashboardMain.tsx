@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type SetStateAction } from "react"
-import { AddIcon, DeleteIcon, DotsIcon, EditPencilIcon } from "../../assets/icons"
+import { AddIcon, DeleteIcon, DotsIcon, EditPencilIcon, MenuIcon } from "../../assets/icons"
 import { Link } from "react-router"
 import { fetchAddParentNode, fetchDeleteNode, fetchParentsNodes, fetchUpdateNodes } from "../../components/fetchData"
 import type { DBNode } from "./dashboardElement_types"
@@ -23,7 +23,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [dashboardName, setDashboardName] = useState("dashboardName");
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
 
   const updateData = async () => {
     try {
@@ -56,9 +56,16 @@ export default function DashboardPage() {
   }
 
   return (
-    <section className="flex min-h-screen">
+    <section className="flex min-h-screen overflow-x-clip">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      <section className={`flex-1 flex flex-col ${sidebarOpen ? "ml-64" : "ml-16"} min-h-screen p-8 transition-[margin-left] duration-150 ease-out`}>
+      <section className={`flex-1 min-w-0 flex flex-col ${sidebarOpen ? "md:ml-64" : "md:ml-16"} ml-0 min-h-screen p-4 md:p-8 transition-[margin-left] duration-150 ease-out`}>
+        <button
+          onClick={() => setSidebarOpen(prev => !prev)}
+          className="mb-4 cursor-pointer rounded p-2 hover:bg-gray-100 md:hidden"
+          aria-label="Toggle menu"
+        >
+          <MenuIcon className="size-6" />
+        </button>
         <ProjectHeader
           name={dashboardName}
           setName={setDashboardName}
@@ -140,7 +147,7 @@ export function ProjectHeader({ name, setName, project_id, deleteButton }: {
   }, [edit])
 
   return (
-    <header className="p-3 pt-10 flex justify-between border-b m-4 ">
+    <header className="p-3 flex justify-between border-b m-4 mt-0 ">
       <div className="flex items-end w-11/12 ">
         {
           edit ? (

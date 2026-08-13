@@ -1,5 +1,5 @@
 import { ProjectHeader } from "./DashboardMain"
-import { AddIcon, ArrowIcon, DotsMoveIcon } from "../../assets/icons"
+import { AddIcon, ArrowUpIcon, DotsMoveIcon, MenuIcon } from "../../assets/icons"
 import { Link, useParams } from "react-router"
 import { useEffect, useState, type Dispatch, type SetStateAction, useRef } from "react";
 import type { DataFetchedType, DBNode, ProjectNode } from "./dashboardElement_types";
@@ -19,7 +19,7 @@ export default function DashboardProjectElement() {
   const [error, setError] = useState(false)
   const { project_id } = useParams()
   const [name, setName] = useState("")
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768)
 
   const addElement = async () => {
     const type = "string";
@@ -93,14 +93,23 @@ export default function DashboardProjectElement() {
   }, [project_id])
 
   return (
-    <section className="flex min-h-screen">
+    <section className="flex min-h-screen overflow-x-clip">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      <section className={`flex-1 p-4 ${sidebarOpen ? "ml-64" : "ml-16"} transition-[margin-left] duration-150 ease-out`}>
-        <Link to={"./.."}>
-          <div className="w-10 h-10 absolute top-0 rotate-180 flex items-center justify-center bg-primary">
-            <ArrowIcon />
-          </div>
-        </Link>
+      <section className={`flex-1 min-w-0 p-4 ${sidebarOpen ? "md:ml-64" : "md:ml-16"} ml-0 transition-[margin-left] duration-150 ease-out`}>
+        <div className="mb-4 flex items-center gap-2">
+          <button
+            onClick={() => setSidebarOpen(prev => !prev)}
+            className="cursor-pointer rounded p-2 hover:bg-gray-100 md:hidden"
+            aria-label="Toggle menu"
+          >
+            <MenuIcon className="size-6" />
+          </button>
+          <Link to={"./.."} aria-label="Go back">
+            <div className="flex h-10 w-10 rounded -rotate-90 items-center justify-center hover:bg-gray-100 duration-150">
+              <ArrowUpIcon className="size-10" />
+            </div>
+          </Link>
+        </div>
 
         <ProjectHeader
           name={name}

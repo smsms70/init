@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { AddIcon, ArrowUpIcon, PersonIcon } from "../assets/icons"
+import { AddIcon, ArrowUpIcon, MenuIcon, PersonIcon } from "../assets/icons"
 import { Link, useNavigate, useParams } from "react-router"
 import { fetchAddParentNode, fetchParentsNodes } from "./fetchData"
 import { AddElement } from "./AddElement"
@@ -41,74 +41,87 @@ export function Sidebar({ isOpen, setIsOpen }: {
     const { id } = await fetchAddParentNode({ Data: data })
     const updated = await fetchParentsNodes()
     setParents(updated)
+    if (window.innerWidth < 768) toggleOpen(false)
     navigate(`/dashboard/${id}`)
   }
 
+  const asideClasses = `fixed left-0 top-0 bottom-0 z-40 w-64 bg-gray-800 text-white transition-all duration-200 ease-out ${
+    sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0 md:w-16"
+  }`
+
   return (
-    <aside
-      className={`fixed left-0 top-0 bottom-0 ${sidebarOpen ? "w-64" : "w-16"} bg-gray-800 text-white transition-[width] duration-200 ease-out`}
-    >
-      <div className={`
-        flex h-16 items-center justify-between px-4
-        ${!sidebarOpen && "mt-5 flex-col justify-center gap-3"}
-        `}>
-        <PersonIcon className="size-8" />
-        <button
-          onClick={() => toggleOpen(!sidebarOpen)}
-          className="cursor-pointer rounded hover:bg-white/20"
-        >
-          <ArrowUpIcon className={` ${sidebarOpen ? "-rotate-90 size-8" : "rotate-90 size-6"}`} />
-        </button>
-      </div>
+    <>
       {sidebarOpen && (
-        <div className="p-4 text-sm">
-          <nav>
-            <div className="mb-2 flex w-full items-center justify-between">
-              <button
-                onClick={() => setProjectsOpen(!projectsOpen)}
-                className="outline-none group flex w-full cursor-pointer items-center justify-between font-medium text-gray-300 hover:text-white"
-              >
-                <span>Projects</span>
-                <ArrowUpIcon className={`size-4 duration-200 group-hover:bg-white/20 rounded ${projectsOpen ? "rotate-180 " : "rotate-90"}`} />
-              </button>
-            </div>
-            {projectsOpen && (
-              loading ? (
-                <p>Loading...</p>
-              ) : parents.length ? (
-                <ul className="flex flex-col gap-1">
-                  {parents.map(parent => (
-                    <li key={parent.Id}>
-                      <Link
-                        to={`/dashboard/${parent.Id}`}
-                        className={`block rounded p-1.5 wrap-break-word duration-150 hover:bg-white/20 ${String(parent.Id) === project_id ? "bg-white/10 font-bold" : ""}`}
-                      >
-                        {parent.data}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p>No projects</p>
-              )
-            )}
-            <AddElement
-              onAdd={handleAdd}
-              placeholder="Project name"
-              triggerClassName="mt-2 flex cursor-pointer items-center gap-1.5 rounded p-1.5 text-gray-300 hover:bg-white/10 hover:text-white"
-              formClassName="mb-2 flex w-full flex-col gap-2 rounded border border-white/20 p-2"
-              inputClassName="w-full rounded bg-gray-700/50 p-1 outline-none placeholder:text-gray-400"
-              addButtonClassName="cursor-pointer rounded bg-white/10 px-2 py-0.5 hover:bg-white/20"
-              cancelButtonClassName="cursor-pointer rounded px-2 py-0.5 hover:bg-white/20"
-            >
-              <>
-                <AddIcon className="size-4" />
-                <span>New</span>
-              </>
-            </AddElement>
-          </nav>
-        </div>
+        <div
+          className="fixed inset-0 z-30 bg-black/50 md:hidden"
+          onClick={() => toggleOpen(false)}
+        />
       )}
-    </aside>
+      <aside className={asideClasses}>
+        <div className={`
+          flex h-16 items-center justify-between px-4
+          ${!sidebarOpen && "mt-5 flex-col justify-center gap-3"}
+          `}>
+          <PersonIcon className="size-8" />
+          <button
+            onClick={() => toggleOpen(!sidebarOpen)}
+            className="cursor-pointer rounded p-1 hover:bg-white/20"
+            aria-label="Toggle menu"
+          >
+            <MenuIcon className="size-6" />
+          </button>
+        </div>
+        {sidebarOpen && (
+          <div className="p-4 text-sm">
+            <nav>
+              <div className="mb-2 flex w-full items-center justify-between">
+                <button
+                  onClick={() => setProjectsOpen(!projectsOpen)}
+                  className="outline-none group flex w-full cursor-pointer items-center justify-between font-medium text-gray-300 hover:text-white"
+                >
+                  <span>Projects</span>
+                  <ArrowUpIcon className={`size-4 duration-200 group-hover:bg-white/20 rounded ${projectsOpen ? "rotate-180 " : "rotate-90"}`} />
+                </button>
+              </div>
+              {projectsOpen && (
+                loading ? (
+                  <p>Loading...</p>
+                ) : parents.length ? (
+                  <ul className="flex flex-col gap-1">
+                    {parents.map(parent => (
+                      <li key={parent.Id}>
+                        <Link
+                          to={`/dashboard/${parent.Id}`}
+                          onClick={() => { if (window.innerWidth < 768) toggleOpen(false) }}
+                          className={`block rounded p-1.5 wrap-break-word duration-150 hover:bg-white/20 ${String(parent.Id) === project_id ? "bg-white/10 font-bold" : ""}`}
+                        >
+                          {parent.data}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>No projects</p>
+                )
+              )}
+              <AddElement
+                onAdd={handleAdd}
+                placeholder="Project name"
+                triggerClassName="mt-2 flex cursor-pointer items-center gap-1.5 rounded p-1.5 text-gray-300 hover:bg-white/10 hover:text-white"
+                formClassName="mb-2 flex w-full flex-col gap-2 rounded border border-white/20 p-2"
+                inputClassName="w-full rounded bg-gray-700/50 p-1 outline-none placeholder:text-gray-400"
+                addButtonClassName="cursor-pointer rounded bg-white/10 px-2 py-0.5 hover:bg-white/20"
+                cancelButtonClassName="cursor-pointer rounded px-2 py-0.5 hover:bg-white/20"
+              >
+                <>
+                  <AddIcon className="size-4" />
+                  <span>New</span>
+                </>
+              </AddElement>
+            </nav>
+          </div>
+        )}
+      </aside>
+    </>
   )
 }

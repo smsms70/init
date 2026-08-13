@@ -1,6 +1,5 @@
-import { ProjectHeader } from "./DashboardMain"
-import { AddIcon, ArrowUpIcon, DotsMoveIcon, MenuIcon } from "../../assets/icons"
-import { Link, useParams } from "react-router"
+import { AddIcon, DotsMoveIcon } from "../../assets/icons"
+import { useParams } from "react-router"
 import { useEffect, useState, type Dispatch, type SetStateAction, useRef } from "react";
 import type { DataFetchedType, DBNode, ProjectNode } from "./dashboardElement_types";
 import { isSortable, useSortable } from "@dnd-kit/react/sortable";
@@ -11,7 +10,7 @@ import { NodeCode } from './nodeComp_code.tsx'
 import { NodeList, NodeNumberList, NodeString, NodeTodo } from "./nodeComp_Basics.tsx";
 import { NodeContext } from "./nodeContext";
 import "./dashboardElement_prototypes";
-import { Sidebar } from "../../components/Sidebar"
+import { DashboardLayout } from "./dashboardLayout"
 
 export default function DashboardProjectElement() {
   const [allData, setAllData] = useState<ProjectNode[]>([]);
@@ -19,7 +18,6 @@ export default function DashboardProjectElement() {
   const [error, setError] = useState(false)
   const { project_id } = useParams()
   const [name, setName] = useState("")
-  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768)
 
   const addElement = async () => {
     const type = "string";
@@ -93,34 +91,17 @@ export default function DashboardProjectElement() {
   }, [project_id])
 
   return (
-    <section className="flex min-h-screen overflow-x-clip">
-      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      <section className={`flex-1 min-w-0 p-4 ${sidebarOpen ? "md:ml-64" : "md:ml-16"} ml-0 transition-[margin-left] duration-150 ease-out`}>
-        <div className="mb-4 flex items-center gap-2">
-          <button
-            onClick={() => setSidebarOpen(prev => !prev)}
-            className="cursor-pointer rounded p-2 hover:bg-gray-100 md:hidden"
-            aria-label="Toggle menu"
-          >
-            <MenuIcon className="size-6" />
-          </button>
-          <Link to={"./.."} aria-label="Go back">
-            <div className="flex h-10 w-10 rounded -rotate-90 items-center justify-center hover:bg-gray-100 duration-150">
-              <ArrowUpIcon className="size-10" />
-            </div>
-          </Link>
-        </div>
+    <DashboardLayout
+      title={name}
+      setTitle={setName}
+      project_id={project_id}
+      backTo="./.."
+    >
+      <section className="p-0 md:p-2 lg:p-4 flex  " >
 
-        <ProjectHeader
-          name={name}
-          setName={setName}
-          project_id={project_id}
-        />
-        <section className="p-0 md:p-2 lg:p-4 flex  " >
-
-          <DragDropProvider
-            onDragEnd={event => {
-              if (event.canceled) return
+        <DragDropProvider
+          onDragEnd={event => {
+            if (event.canceled) return
               const { source } = event.operation
               if (!isSortable(source)) return
 
@@ -189,8 +170,7 @@ export default function DashboardProjectElement() {
             </div>
           </DragDropProvider>
         </section>
-      </section>
-    </section>
+    </DashboardLayout>
   )
 }
 

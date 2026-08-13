@@ -1,4 +1,4 @@
-import type { DBNode, User } from "../pages/Dashboard/dashboardElement_types"
+import type { DBNode, User } from "../pages/Dashboard/nodes/types"
 
 // const URL = "http://localhost:8080/" + "api/v1/"
 const URL = "/api/v1/"

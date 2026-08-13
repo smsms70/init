@@ -1,8 +1,8 @@
 import { useState, type ReactNode } from "react"
-import { ArrowUpIcon, MenuIcon } from "../../assets/icons"
+import { ArrowUpIcon, MenuIcon } from "../../../assets/icons"
 import { Link } from "react-router"
-import { Sidebar } from "../../components/Sidebar"
-import { ProjectHeader } from "./projectHeader"
+import { Sidebar } from "./Sidebar"
+import { ProjectHeader } from "./ProjectHeader"
 
 export function DashboardLayout({ title, setTitle, project_id, deleteButton, backTo, children }: {
   title: string

@@ -1,6 +1,6 @@
 import type { JSX } from "react/jsx-runtime"
-import { ChecklistIcon, DotListIcon, CodeListIcon, NumberListIcon } from "../assets/icons"
-import type { ProjectNode } from "../pages/Dashboard/dashboardElement_types"
+import { ChecklistIcon, DotListIcon, CodeListIcon, NumberListIcon } from "../../../assets/icons"
+import type { ProjectNode } from "./types"
 
 export function DropdownAddComponent({ updateType, dropdownRef }: {
   updateType: (item: ProjectNode["type"]) => void

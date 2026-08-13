@@ -1,16 +1,16 @@
 import { AddIcon, DotsMoveIcon } from "../../assets/icons"
 import { useParams } from "react-router"
 import { useEffect, useState, type Dispatch, type SetStateAction, useRef } from "react";
-import type { DataFetchedType, DBNode, ProjectNode } from "./dashboardElement_types";
+import type { DataFetchedType, DBNode, ProjectNode } from "./nodes/types";
 import { isSortable, useSortable } from "@dnd-kit/react/sortable";
 import { fetchAddNode, fetchDeleteNode, fetchNodes, fetchNormalizeOrden, fetchUpdateNodes, fetchGetNodeName, type OrdenT } from "../../components/fetchData";
 import { DragDropProvider } from "@dnd-kit/react";
 import { move } from "@dnd-kit/helpers";
-import { NodeCode } from './nodeComp_code.tsx'
-import { NodeList, NodeNumberList, NodeString, NodeTodo } from "./nodeComp_Basics.tsx";
-import { NodeContext } from "./nodeContext";
-import "./dashboardElement_prototypes";
-import { DashboardLayout } from "./dashboardLayout"
+import { NodeCode } from './nodes/nodeComp_code'
+import { NodeList, NodeNumberList, NodeString, NodeTodo } from "./nodes/nodeComp_Basics";
+import { NodeContext } from "./nodes/nodeContext";
+import "./nodes/prototypes";
+import { DashboardLayout } from "./layout/DashboardLayout"
 
 export default function DashboardProjectElement() {
   const [allData, setAllData] = useState<ProjectNode[]>([]);

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type SetStateAction } from "react"
-import { DeleteIcon, DotsIcon, EditPencilIcon } from "../../assets/icons"
-import { fetchUpdateNodes } from "../../components/fetchData"
-import { TextareaComp } from "../../components/textareaComp"
+import { DeleteIcon, DotsIcon, EditPencilIcon } from "../../../assets/icons"
+import { fetchUpdateNodes } from "../../../components/fetchData"
+import { TextareaComp } from "../../../components/textareaComp"
 
 export function ProjectHeader({ name, setName, project_id, deleteButton }: {
   name: string

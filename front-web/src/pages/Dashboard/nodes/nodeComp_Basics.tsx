@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, type JSX } from "react"
-import type { ProjectNode } from "./dashboardElement_types"
+import type { ProjectNode } from "./types"
 import { useNodeContext } from "./nodeContext"
-import { TextareaComp } from "../../components/textareaComp"
-import { DropdownAddComponent } from "../../components/dropdown"
+import { TextareaComp } from "../../../components/textareaComp"
+import { DropdownAddComponent } from "./dropdown"
 
 export function NodeString() {
   return (

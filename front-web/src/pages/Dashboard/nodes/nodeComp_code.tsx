@@ -1,7 +1,7 @@
 import { useRef, useState } from "react"
-import { CopyIcon } from "../../assets/icons"
+import { CopyIcon } from "../../../assets/icons"
 import Editor from 'react-simple-code-editor/src/index';
-import type { ProjectNode } from "./dashboardElement_types";
+import type { ProjectNode } from "./types";
 import { highlight, languages } from 'prismjs';
 import 'prismjs/components/prism-clike';
 import 'prismjs/components/prism-javascript';

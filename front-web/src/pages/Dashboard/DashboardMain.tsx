@@ -2,11 +2,11 @@ import { useEffect, useRef, useState } from "react"
 import { AddIcon } from "../../assets/icons"
 import { Link } from "react-router"
 import { fetchAddParentNode, fetchDeleteNode, fetchParentsNodes, fetchUpdateNodes } from "../../components/fetchData"
-import type { DBNode } from "./dashboardElement_types"
+import type { DBNode } from "./nodes/types"
 import { TextareaComp } from "../../components/textareaComp"
 import { AddElement } from "../../components/AddElement"
-import { DashboardLayout } from "./dashboardLayout"
-import { EditButtonComp } from "./projectHeader"
+import { DashboardLayout } from "./layout/DashboardLayout"
+import { EditButtonComp } from "./layout/ProjectHeader"
 
 export type ProjectType = {
   id?: number

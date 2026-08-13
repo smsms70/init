@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react"
-import type { contextType } from "./dashboardElement_types"
+import type { contextType } from "./types"
 
 export const NodeContext = createContext<contextType | null>(null)
 

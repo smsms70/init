@@ -1,4 +1,4 @@
-import { Sidebar } from "./components/Sidebar"
+import { Sidebar } from "./pages/Dashboard/layout/Sidebar"
 
 function App() {
   return (

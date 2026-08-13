@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react"
-import { AddIcon, ArrowUpIcon, MenuIcon, PersonIcon } from "../assets/icons"
+import { AddIcon, ArrowUpIcon, MenuIcon, PersonIcon } from "../../../assets/icons"
 import { Link, useNavigate, useParams } from "react-router"
-import { fetchAddParentNode, fetchParentsNodes } from "./fetchData"
-import { AddElement } from "./AddElement"
+import { fetchAddParentNode, fetchParentsNodes } from "../../../components/fetchData"
+import { AddElement } from "../../../components/AddElement"
 
 type ParentNodeType = {
   Id: number

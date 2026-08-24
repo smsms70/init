@@ -1,6 +1,7 @@
 #main
 .git
 data/foo-data.db
+.playwright-mcp
 data/
 data
 README.md

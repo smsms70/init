@@ -1,4 +1,5 @@
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import { EyeIcon, EyeOffIcon } from "../../assets/icons"
 import { fetchLogin } from "../../components/fetchData"
 
 export default function LoginPage() {
@@ -41,13 +42,7 @@ export default function LoginPage() {
             <span>username: </span>
             <span className="font-mono">admin</span>
           </div>
-          <div className="border flex flex-col h-20 ">
-            <span>password:</span>
-            <input type="password" value={pass} required
-              onChange={(e) => setPass(e.currentTarget.value)}
-              className="border active:appearance-none focus:outline-0 py-0.5 px-2 text-black"
-            ></input>
-          </div>
+          <PasswordInput value={pass} onChange={setPass} />
           <div className="border mt-auto p-2 flex flex-col items-center justify-center">
             {
               loading ? (
@@ -64,5 +59,42 @@ export default function LoginPage() {
         </form>
       </div>
     </section>
+  )
+}
+
+function PasswordInput({ value, onChange }: { value: string, onChange: (value: string) => void }) {
+  const [showPass, setShowPass] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    const input = inputRef.current
+    if (!input) return
+    const end = input.value.length
+    const frame = requestAnimationFrame(() => {
+      input.setSelectionRange(end, end)
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [showPass])
+
+  return (
+    <div className="border flex flex-col h-20 ">
+      <span>password:</span>
+      <div className="relative">
+        <input ref={inputRef} type={showPass ? "text" : "password"} value={value} required autoComplete="current-password"
+          onChange={(e) => onChange(e.currentTarget.value)}
+          className="border active:appearance-none focus:outline-0 py-0.5 px-2 pr-10 text-black w-full"
+        ></input>
+
+        <button type="button"
+          onClick={() => setShowPass((v) => !v)}
+          onMouseDown={(e) => e.preventDefault()}
+          aria-label={showPass ? "Hide password" : "Show password"}
+          title={showPass ? "Hide password" : "Show password"}
+          className="absolute right-1 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-gray-800 cursor-pointer duration-150">
+
+          {showPass ? <EyeOffIcon className="size-5" /> : <EyeIcon className="size-5" />}
+        </button>
+      </div>
+    </div>
   )
 }

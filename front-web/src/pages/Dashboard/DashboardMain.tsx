@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react"
 import { AddIcon } from "../../assets/icons"
 import { Link } from "react-router"
-import { fetchAddParentNode, fetchDeleteNode, fetchParentsNodes, fetchUpdateNodes } from "../../components/fetchData"
+import { fetchAddParentNode, fetchDeleteNode, fetchParentsNodes, fetchUpdateNodes, fetchIncomingLinks } from "../../components/fetchData"
 import type { DBNode } from "./nodes/types"
 import { TextareaComp } from "../../components/textareaComp"
 import { AddElement } from "../../components/AddElement"
 import { DashboardLayout } from "./layout/DashboardLayout"
-import { EditButtonComp } from "./layout/ProjectHeader"
+import { EditButtonComp } from "../../components/ui/EditButtonComp"
+import { DeleteConfirmationModal } from "../../components/ui/DeleteConfirmationModal"
 
 export type ProjectType = {
   id?: number
@@ -24,6 +25,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [dashboardName, setDashboardName] = useState("dashboardName");
+  const [deleteTarget, setDeleteTarget] = useState<{ id: number, incomingCount: number, name?: string } | null>(null);
 
   const updateData = async () => {
     try {
@@ -32,7 +34,6 @@ export default function DashboardPage() {
     } catch (err) {
       setError("error")
       console.error("error is: ", err)
-      // if (err.name && err.name == "AuthErr") window.location.href = "/auth/login"
     } finally {
       setLoading(false)
     }
@@ -49,55 +50,80 @@ export default function DashboardPage() {
   }
 
   const handleDeleteElement = async (item: ProjectNodeType["Id"]) => {
-    const response = await fetchDeleteNode(item)
-    console.log(response)
-    console.log(data, item)
-    setData(prev => prev.filter(prevItem => prevItem.Id !== item))
+    try {
+      const result = await fetchIncomingLinks(item)
+      if (result.count > 0) {
+        const target = data.find(p => p.Id === item)
+        setDeleteTarget({ id: item, incomingCount: result.count, name: target?.data })
+        return
+      }
+    } catch (err) {
+      console.error("error checking incoming links:", err)
+    }
+    await performDelete(item)
   }
+
+  const performDelete = async (id: number) => {
+    const response = await fetchDeleteNode(id)
+    console.log(response)
+    setData(prev => prev.filter(prevItem => prevItem.Id !== id))
+    setDeleteTarget(null)
+  }
+
+  const confirmDelete = () => {
+    if (deleteTarget) performDelete(deleteTarget.id)
+  }
+
+  const cancelDelete = () => setDeleteTarget(null)
 
   return (
     <DashboardLayout title={dashboardName} setTitle={setDashboardName}>
       <section className="grid mb-30 grid-cols-[repeat(auto-fit,minmax(250px,1fr))] px-7 gap-6 ">
-          {
-            !loading ? (
-              error ? (
-                <div className="border text-red-800/80 font-bold">
-                  Error: {JSON.stringify(error)}
-                </div>
-              ) : (
-                <>
-                  {
-                    data && data.map((proj) => (
-                      <ProjectComp
-                        key={proj.Id}
-                        project={proj}
-                        handleDeleteElement={() => handleDeleteElement(proj.Id)}
-                      />
-                    ))
-                  }
-                  {
-                    <AddElement
-                      onAdd={name => addElement({ Data: name })}
-                      triggerClassName="w-full h-full min-h-20 flex justify-center rounded items-center group duration-100 border border-gray-300 shadow-sm hover:bg-primary cursor-pointer"
-                      formClassName="flex flex-col group group-has-focus:border-gray-400 border-gray-200 gap-3 p-3 align-center justify-center bg-white h-fit py-2"
-                      inputClassName="text-lg p-1 focus:border-b-gray-800 focus:outline-none border border-gray-200"
-                      addButtonClassName="border rounded w-fit px-2 py-1 self-center cursor-pointer bg-white"
-                      showCancel={false}
-                    >
-                      <AddIcon className="size-20 duration-100 text-primary group-hover:text-white" />
-                    </AddElement>
-                  }
-                </>
-              )
-            ) : (
-              <div>
-                Loading...
+        {
+          !loading ? (
+            error ? (
+              <div className="border text-red-800/80 font-bold">
+                Error: {JSON.stringify(error)}
               </div>
+            ) : (
+              <>
+                {
+                  data && data.map((proj) => (
+                    <ProjectComp
+                      key={proj.Id}
+                      project={proj}
+                      handleDeleteElement={() => handleDeleteElement(proj.Id)}
+                    />
+                  ))
+                }
+                {
+                  <AddElement
+                    onAdd={name => addElement({ Data: name })}
+                    triggerClassName="w-full h-full min-h-20 flex justify-center rounded items-center group duration-100 border border-gray-300 shadow-sm hover:bg-primary cursor-pointer"
+                    formClassName="flex flex-col group group-has-focus:border-gray-400 border-gray-200 gap-3 p-3 align-center justify-center bg-white h-fit py-2"
+                    inputClassName="text-lg p-1 focus:border-b-gray-800 focus:outline-none border border-gray-200"
+                    addButtonClassName="border rounded w-fit px-2 py-1 self-center cursor-pointer bg-white"
+                    showCancel={false}
+                  >
+                    <AddIcon className="size-20 duration-100 text-primary group-hover:text-white" />
+                  </AddElement>
+                }
+              </>
             )
-          }
-          {
-          }
-        </section>
+          ) : (
+            <div>
+              Loading...
+            </div>
+          )
+        }
+      </section>
+      <DeleteConfirmationModal
+        isOpen={!!deleteTarget}
+        onClose={cancelDelete}
+        onConfirm={confirmDelete}
+        incomingCount={deleteTarget?.incomingCount ?? 0}
+        itemName={deleteTarget?.name}
+      />
     </DashboardLayout>
   )
 }

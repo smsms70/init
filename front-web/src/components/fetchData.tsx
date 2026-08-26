@@ -166,7 +166,7 @@ export async function fetchDeleteNode(nodeId: number) {
     throw err
   }
 }
-export async function fetchAddNode(parent_id: number, node: Pick<DBNode, "Type" | "Orden" | "Data">) {
+export async function fetchAddNode(parent_id: number, node: Pick<DBNode, "Type" | "Orden" | "Data" | "Ref_id">) {
   const url = URL + nodes + parent_id;
 
   try {
@@ -203,6 +203,51 @@ export async function fetchAddParentNode(node: Pick<DBNode, "Data">) {
       body: JSON.stringify(node)
     })
     if (!response.ok) throw new Error("error in connection")
+    const data = await response.json()
+    return data
+  } catch (err) {
+    console.error("error is: ", err)
+    throw err
+  }
+}
+
+export async function fetchNestedParents(parentId: string) {
+  const url = URL + nodes + parentId + "/nested"
+  try {
+    const response = await fetchRefreshTokenMiddleware(url, {
+      method: 'GET',
+    })
+    if (!response.ok) throw new Error("error connecting")
+    const data = await response.json()
+    return data.rows
+  } catch (err) {
+    console.error("error is: ", err)
+    throw err
+  }
+}
+
+export async function fetchLinkTargets() {
+  const url = URL + nodes + "linkTargets"
+  try {
+    const response = await fetchRefreshTokenMiddleware(url, {
+      method: 'GET',
+    })
+    if (!response.ok) throw new Error("error connecting")
+    const data = await response.json()
+    return data.rows
+  } catch (err) {
+    console.error("error is: ", err)
+    throw err
+  }
+}
+
+export async function fetchIncomingLinks(nodeId: number) {
+  const url = URL + nodes + "incomingLinks/" + nodeId
+  try {
+    const response = await fetchRefreshTokenMiddleware(url, {
+      method: 'GET',
+    })
+    if (!response.ok) throw new Error("error connecting")
     const data = await response.json()
     return data
   } catch (err) {

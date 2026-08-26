@@ -1,13 +1,14 @@
 import { AddIcon, DotsMoveIcon } from "../../assets/icons"
 import { useParams } from "react-router"
-import { useEffect, useState, type Dispatch, type SetStateAction, useRef } from "react";
+import { useEffect, useState, useRef, type Dispatch, type SetStateAction } from "react";
 import type { DataFetchedType, DBNode, ProjectNode } from "./nodes/types";
 import { isSortable, useSortable } from "@dnd-kit/react/sortable";
 import { fetchAddNode, fetchDeleteNode, fetchNodes, fetchNormalizeOrden, fetchUpdateNodes, fetchGetNodeName, type OrdenT } from "../../components/fetchData";
 import { DragDropProvider } from "@dnd-kit/react";
 import { move } from "@dnd-kit/helpers";
-import { NodeCode } from './nodes/nodeComp_code'
-import { NodeList, NodeNumberList, NodeString, NodeTodo } from "./nodes/nodeComp_Basics";
+import { NodeCode } from "./nodes/nodeComp_code.tsx";
+import { NodeList, NodeNumberList, NodeString, NodeTodo } from "./nodes/nodeComp_Basics.tsx";
+import { NodeParentLink, NodeNestedParent } from "./nodes/nodeComp_parentLink";
 import { NodeContext } from "./nodes/nodeContext";
 import "./nodes/prototypes";
 import { DashboardLayout } from "./layout/DashboardLayout"
@@ -46,6 +47,7 @@ export default function DashboardProjectElement() {
         id: item.Id,
         parent_id: parent_id,
         data: item.data || "",
+        ref_id: item.Ref_id?.Valid ? item.Ref_id.Int16 : undefined,
         state: {
           orden: item.Orden ? Number(item.Orden.String) : 0,
           edit: false
@@ -63,6 +65,11 @@ export default function DashboardProjectElement() {
   }
 
   useEffect(() => {
+    setAllData([])
+    setLoading(true)
+    setError(false)
+    setName("")
+
     const getParentNode = async () => {
       if (project_id) {
         const parent_name = await fetchGetNodeName(project_id)
@@ -102,74 +109,74 @@ export default function DashboardProjectElement() {
         <DragDropProvider
           onDragEnd={event => {
             if (event.canceled) return
-              const { source } = event.operation
-              if (!isSortable(source)) return
+            const { source } = event.operation
+            if (!isSortable(source)) return
 
-              if (source.initialIndex == source.index) return
+            if (source.initialIndex == source.index) return
 
-              const prevItem = source.index > 0 ? allData[source.index - 1] : undefined;
-              const currentItem = allData.find(item => item.id == source.id)
-              const nextItem = allData[source.index + 1];
-              const targetItem = allData[source.index];
+            const prevItem = source.index > 0 ? allData[source.index - 1] : undefined;
+            const currentItem = allData.find(item => item.id == source.id)
+            const nextItem = allData[source.index + 1];
+            const targetItem = allData[source.index];
 
-              const newOrden = (nextItem && prevItem && currentItem) ? (
-                currentItem.state.orden < targetItem.state.orden
-                  ?
-                  (targetItem.state.orden + nextItem.state.orden) / 2
-                  :
-                  (targetItem.state.orden + prevItem.state.orden) / 2
+            const newOrden = (nextItem && prevItem && currentItem) ? (
+              currentItem.state.orden < targetItem.state.orden
+                ?
+                (targetItem.state.orden + nextItem.state.orden) / 2
+                :
+                (targetItem.state.orden + prevItem.state.orden) / 2
+            ) : (
+              (prevItem) ?
+                targetItem.state.orden + 1 :
+                targetItem.state.orden - 1
+            )
+
+            fetchUpdateNodes(Number(source.id), { Orden: (newOrden).toString() })
+
+            const newData = allData.map(item =>
+              item.id == source.id ?
+                { ...item, state: { ...item.state, orden: newOrden } } :
+                item
+            )
+            const newArr = move(newData, event)
+            setAllData(newArr)
+          }}
+        >
+          <div className="shadow  border border-gray-200 mb-10 min-h-15  w-full py-2 pl-8 pr-2 md:pl-5 md:pr-5  ">
+            {
+              loading ? (
+                <div>loading...</div>
               ) : (
-                (prevItem) ?
-                  targetItem.state.orden + 1 :
-                  targetItem.state.orden - 1
-              )
-
-              fetchUpdateNodes(Number(source.id), { Orden: (newOrden).toString() })
-
-              const newData = allData.map(item =>
-                item.id == source.id ?
-                  { ...item, state: { ...item.state, orden: newOrden } } :
-                  item
-              )
-              const newArr = move(newData, event)
-              setAllData(newArr)
-            }}
-          >
-            <div className="shadow  border border-gray-200 mb-10 min-h-15  w-full py-2 pl-8 pr-2 md:pl-5 md:pr-5  ">
-              {
-                loading ? (
-                  <div>loading...</div>
+                error ? (
+                  <div>error</div>
                 ) : (
-                  error ? (
-                    <div>error</div>
-                  ) : (
-                    <>
-                      {
-                        allData && allData.map((e, idx) => (
-                          <ProjectNode
-                            key={e.id}
-                            node={e}
-                            allItems={allData}
-                            setNewItem={setAllData}
-                            sortIndex={idx}
-                          />
-                        ))
-                      }
-                      {
-                        !allData.length &&
-                        <button onClick={() => addElement()}
-                          className="w-40 rounded flex justify-center cursor-pointer hover:scale-105 duration-75 border border-gray-300 ">
-                          <AddIcon className="group size-6 stroke-gray-400" />
-                        </button>
-                      }
+                  <>
+                    {
+                      allData && allData.map((e, idx) => (
+                        <ProjectNode
+                          key={e.id}
+                          node={e}
+                          allItems={allData}
+                          setNewItem={setAllData}
+                          sortIndex={idx}
+                        />
+                      ))
+                    }
+                    {
+                      !allData.length &&
+                      <button onClick={() => addElement()}
+                        className="w-40 rounded flex justify-center cursor-pointer hover:scale-105 duration-75 border border-gray-300 ">
+                        <AddIcon className="group size-6 stroke-gray-400" />
+                      </button>
+                    }
 
-                    </>
-                  )
+                  </>
                 )
-              }
-            </div>
-          </DragDropProvider>
-        </section>
+              )
+            }
+          </div>
+        </DragDropProvider>
+      </section>
     </DashboardLayout>
   )
 }
@@ -332,6 +339,12 @@ function ProjectNode({ node, setNewItem, allItems, sortIndex }: {
         }
         {node.type == "number-list" &&
           <NodeNumberList />
+        }
+        {node.type == "parent_link" &&
+          <NodeParentLink />
+        }
+        {node.type == "parent_node" &&
+          <NodeNestedParent />
         }
       </NodeContext>
     </div>

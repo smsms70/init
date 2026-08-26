@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type JSX } from "react"
 import type { ProjectNode } from "./types"
 import { useNodeContext } from "./nodeContext"
 import { TextareaComp } from "../../../components/textareaComp"
-import { DropdownAddComponent } from "./dropdown"
+import { DropdownAddComponent } from "../../../components/ui/DropdownAddComponent"
 
 export function NodeString() {
   return (
@@ -94,12 +94,13 @@ function SimpleEditText({ children, textClass, parentClass }: {
     })
   }
 
-  const updateType = (type: ProjectNode["type"]) => {
+  const updateType = (type: ProjectNode["type"], refId?: number) => {
     onUpdate({
       ...node,
       type: type,
+      ref_id: refId,
       state: { ...node.state, edit: true },
-    }, { Type: type })
+    }, { Type: type, Ref_id: refId })
   }
 
   const addWithEnter = (e: React.KeyboardEvent) => {

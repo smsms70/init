@@ -3,7 +3,6 @@ package model
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -20,6 +19,7 @@ type Nodes struct {
 	Done   sql.NullBool
 	Lang   sql.NullString
 	Number sql.NullInt16
+	Ref_id sql.NullInt16
 }
 type ParentNodes struct {
 	Id   int
@@ -37,16 +37,24 @@ CREATE TABLE IF NOT EXISTS nodes (
 
 	number INTEGER,
 	done BOOLEAN DEFAULT FALSE,
-	language TEXT, 
+	language TEXT,
+	ref_id INTEGER,
 
-	created_at DATETIME DEFAULD CURRENT_TIMESTAMP,
-	FOREIGN KEY(parent_id) REFERENCES nodes(id) ON DELETE CASCADE
+	created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+	FOREIGN KEY(parent_id) REFERENCES nodes(id) ON DELETE CASCADE,
+	FOREIGN KEY(ref_id) REFERENCES nodes(id) ON DELETE SET NULL
 )
 `
 
+var migrationAddRefId = `ALTER TABLE nodes ADD COLUMN ref_id INTEGER`
+
 func CreateTableNode() error {
 	_, err := config.DB.Exec(tableCreation)
-	return err
+	if err != nil {
+		return err
+	}
+	config.DB.Exec(migrationAddRefId)
+	return nil
 }
 
 func GetParentNodes() ([]ParentNodes, error) {
@@ -55,6 +63,9 @@ func GetParentNodes() ([]ParentNodes, error) {
 	if err != nil {
 		return nil, err
 	}
+	// if rows.Err() != nil {
+	// 	return nil, rows.Err()
+	// }
 
 	var items []ParentNodes
 	for rows.Next() {
@@ -72,9 +83,8 @@ type NodeName struct {
 }
 
 func GetNodeName(parentId string) ([]NodeName, error) {
-	query := fmt.Sprintf("SELECT data FROM nodes WHERE id = %v", parentId)
-
-	rows, err := config.DB.Query(query)
+	query := "SELECT data FROM nodes WHERE id = ?"
+	rows, err := config.DB.Query(query, parentId)
 	if err != nil {
 		return nil, err
 	}
@@ -90,22 +100,17 @@ func GetNodeName(parentId string) ([]NodeName, error) {
 }
 
 func GetNodes(parentId string) ([]Nodes, error) {
-	var query string
-	query = fmt.Sprintf("SELECT id, type, data, done, language, orden, number, parent_id FROM nodes WHERE parent_id = %v", parentId)
-
-	fmt.Println(query)
-	rows, err := config.DB.Query(query)
+	query := "SELECT id, type, data, done, language, orden, number, parent_id, ref_id FROM nodes WHERE parent_id = ?"
+	rows, err := config.DB.Query(query, parentId)
 	if err != nil {
-		fmt.Println("error here in rows")
 		return nil, err
 	}
 	var items []Nodes
 
 	for rows.Next() {
 		var node Nodes
-		err := rows.Scan(&node.Id, &node.Type, &node.Data, &node.Done, &node.Lang, &node.Orden, &node.Number, &node.Parent_id)
+		err := rows.Scan(&node.Id, &node.Type, &node.Data, &node.Done, &node.Lang, &node.Orden, &node.Number, &node.Parent_id, &node.Ref_id)
 		if err != nil {
-			fmt.Println("error in rows.scan")
 			return nil, err
 		}
 		items = append(items, node)
@@ -117,12 +122,19 @@ type AddNodeType struct {
 	Type  *string `json:"type" binding:"required"`
 	Data  *string `json:"data" binding:"required"`
 	Orden *string `json:"orden" binding:"required"`
+	RefId *int    `json:"ref_id"`
 }
 
 func AddNode(id string, newNode AddNodeType) (int64, error) {
-	insertSQL := `INSERT INTO nodes(data, type, orden, parent_id) values(?, ?, ?, ?);`
-	fmt.Println(*newNode.Orden)
-	result, err := config.DB.Exec(insertSQL, *newNode.Data, *newNode.Type, *newNode.Orden, id)
+	insertSQL := `INSERT INTO nodes(data, type, orden, parent_id, ref_id) values(?, ?, ?, ?, ?);`
+	var refId interface{} = nil
+	if newNode.RefId != nil {
+		refId = *newNode.RefId
+	}
+	result, err := config.DB.Exec(insertSQL, *newNode.Data, *newNode.Type, *newNode.Orden, id, refId)
+	if err != nil {
+		return 0, err
+	}
 
 	LastInserId, err := result.LastInsertId()
 
@@ -145,6 +157,7 @@ type UpdatedNode struct {
 	Done   *bool
 	Number *int
 	Lang   *string
+	RefId  *int
 }
 
 func PartialNodeUpdate(id string, updates UpdatedNode) error {
@@ -169,19 +182,21 @@ func PartialNodeUpdate(id string, updates UpdatedNode) error {
 	}
 	if updates.Lang != nil {
 		sets = append(sets, "language = ?")
-		args = append(args, updates.Lang)
+		args = append(args, *updates.Lang)
 	}
 	if updates.Orden != nil {
 		sets = append(sets, "orden = ?")
-		args = append(args, updates.Orden)
+		args = append(args, *updates.Orden)
+	}
+	if updates.RefId != nil {
+		sets = append(sets, "ref_id = ?")
+		args = append(args, *updates.RefId)
 	}
 
-	fmt.Println(len(sets))
 	if len(sets) == 0 {
 		return errors.New("all fields are empty")
 	}
-	fmt.Println(args)
-	sqlQuery := " update nodes set " + strings.Join(sets, ", ") + " where id = ?"
+	sqlQuery := "update nodes set " + strings.Join(sets, ", ") + " where id = ?"
 	args = append(args, id)
 
 	_, err := config.DB.Exec(sqlQuery, args...)
@@ -225,4 +240,60 @@ func DeleteNode(id string) error {
 	sqlQuery := "delete from nodes where id = ?"
 	_, err := config.DB.Exec(sqlQuery, id)
 	return err
+}
+
+func GetNestedParents(parentId string) ([]ParentNodes, error) {
+	query := "SELECT id, data, type FROM nodes WHERE parent_id = ? AND type = 'parent_node'"
+	rows, err := config.DB.Query(query, parentId)
+	if err != nil {
+		return nil, err
+	}
+	var items []ParentNodes
+	for rows.Next() {
+		var node ParentNodes
+		if err := rows.Scan(&node.Id, &node.Data, &node.Type); err != nil {
+			return nil, err
+		}
+		items = append(items, node)
+	}
+	return items, nil
+}
+
+func GetLinkTargets() ([]ParentNodes, error) {
+	query := "SELECT id, data, type FROM nodes WHERE type = 'parent_node'"
+	rows, err := config.DB.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	var items []ParentNodes
+	for rows.Next() {
+		var node ParentNodes
+		if err := rows.Scan(&node.Id, &node.Data, &node.Type); err != nil {
+			return nil, err
+		}
+		items = append(items, node)
+	}
+	return items, nil
+}
+
+type IncomingLink struct {
+	Id   int
+	Data *string
+}
+
+func GetIncomingLinks(targetId string) ([]IncomingLink, error) {
+	query := "SELECT id, data FROM nodes WHERE ref_id = ? AND type = 'parent_link'"
+	rows, err := config.DB.Query(query, targetId)
+	if err != nil {
+		return nil, err
+	}
+	var items []IncomingLink
+	for rows.Next() {
+		var link IncomingLink
+		if err := rows.Scan(&link.Id, &link.Data); err != nil {
+			return nil, err
+		}
+		items = append(items, link)
+	}
+	return items, nil
 }

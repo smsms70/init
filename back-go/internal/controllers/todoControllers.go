@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 
 	todoModels "example.com/backend/internal/models"
@@ -19,11 +18,8 @@ func CreateTable(c *gin.Context) {
 
 func GetParentNodes(c *gin.Context) {
 	rows, err := todoModels.GetParentNodes()
-	fmt.Println("happend")
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
-		fmt.Println("error is: ", err)
-		fmt.Println("error is: ", err.Error())
 		return
 	}
 	c.JSON(200, gin.H{"rows": rows})
@@ -95,7 +91,6 @@ func UpdateNode(c *gin.Context) {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
-	fmt.Println("body:", body)
 	if err := todoModels.PartialNodeUpdate(paramId, body); err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -105,12 +100,10 @@ func UpdateNode(c *gin.Context) {
 
 func NormalizeOrden(c *gin.Context) {
 	var body todoModels.OrdenNormalizeT
-	fmt.Println("something: ", body)
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
-	fmt.Println(body)
 	err := todoModels.NormalizeOrden(body)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
@@ -122,10 +115,38 @@ func NormalizeOrden(c *gin.Context) {
 func DeleteNode(c *gin.Context) {
 	id := c.Param("id")
 
-	fmt.Println(id)
 	if err := todoModels.DeleteNode(id); err != nil {
 		c.JSON(500, gin.H{"error": err})
 		return
 	}
 	c.JSON(200, gin.H{"message": "deleted!"})
+}
+
+func GetNestedParents(c *gin.Context) {
+	param := c.Param("parent_id")
+	rows, err := todoModels.GetNestedParents(param)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, gin.H{"rows": rows})
+}
+
+func GetLinkTargets(c *gin.Context) {
+	rows, err := todoModels.GetLinkTargets()
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, gin.H{"rows": rows})
+}
+
+func GetIncomingLinks(c *gin.Context) {
+	id := c.Param("id")
+	rows, err := todoModels.GetIncomingLinks(id)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, gin.H{"count": len(rows), "links": rows})
 }

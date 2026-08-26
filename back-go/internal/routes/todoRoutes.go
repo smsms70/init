@@ -10,7 +10,9 @@ func TodoRoutes(routes *gin.RouterGroup) {
 	nodes.Use(controllers.AuthMiddleware())
 	{
 		nodes.GET("/initTable", controllers.CreateTable)
-		// nodes.GET("/", controllers.GetNodes)
+		nodes.GET("/linkTargets", controllers.GetLinkTargets)
+		nodes.GET("/incomingLinks/:id", controllers.GetIncomingLinks)
+		nodes.GET("/:parent_id/nested", controllers.GetNestedParents)
 		nodes.GET("/:parent_id", controllers.GetNodes)
 		nodes.POST("/:parent_id", controllers.AddNode)
 		nodes.PUT("/:parent_id", controllers.UpdateNode)

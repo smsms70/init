@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 
-	_ "github.com/joho/godotenv"
 	_ "github.com/mattn/go-sqlite3"
 )
 

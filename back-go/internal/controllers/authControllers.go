@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"crypto/subtle"
 	"errors"
 	"fmt"
 
@@ -16,6 +17,8 @@ import (
 
 var jwtSecret []byte = config.GenKey()
 var refreshTokenSecret []byte = config.GenKey()
+
+var errInvalidCredentials = errors.New("invalid credentials")
 
 type User struct {
 	Username *string `json:"username" binding:"required"`
@@ -49,7 +52,7 @@ func RefreshToken(c *gin.Context) {
 
 	//verify body request
 	if err := c.ShouldBindJSON(&body); err != nil {
-		c.JSON(http.StatusMethodNotAllowed, gin.H{"error": "not corrent argument"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "not corrent argument"})
 		return
 	}
 	//get cookie
@@ -70,7 +73,7 @@ func RefreshToken(c *gin.Context) {
 		return
 	}
 
-	accessDuration := int(Expiration.accessToken * 10000)
+	accessDuration := int(Expiration.accessToken.Seconds())
 	c.SetSameSite(http.SameSiteLaxMode)
 	c.SetCookie("token_id", tokenString, accessDuration, "/", "", false, true)
 
@@ -103,20 +106,24 @@ func Login(c *gin.Context) {
 
 	//verify body request
 	if err := c.ShouldBindJSON(&body); err != nil {
-		c.JSON(http.StatusMethodNotAllowed, gin.H{"message": "not corrent argument"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "not corrent argument"})
 		return
 	}
 
 	//confirm user and get token
 	token, err := ConfirmUser(body)
 	if err != nil {
+		if errors.Is(err, errInvalidCredentials) {
+			c.JSON(http.StatusUnauthorized, gin.H{"message": "invalid credentials"})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 
 	//set cookies with tokens
-	accessDuration := int(Expiration.accessToken * 10000)
-	refreshDuration := int(Expiration.refreshToken * 10000)
+	accessDuration := int(Expiration.accessToken.Seconds())
+	refreshDuration := int(Expiration.refreshToken.Seconds())
 	c.SetSameSite(http.SameSiteLaxMode)
 	c.SetCookie("token_id", token.Token, accessDuration, "/", "", false, true)
 	c.SetCookie("refresh_token_id", token.RefreshToken, refreshDuration, "/", "", false, true)
@@ -134,13 +141,11 @@ func ConfirmUser(user User) (*Token, error) {
 	storedPassword := os.Getenv("ADMIN_PASSWORD")
 	storedUser := os.Getenv("ADMIN_USER")
 
-	if storedPassword != *user.Password {
-		fmt.Println("incorrent password")
-		return nil, errors.New("incorrenct password")
-	}
+	userOK := subtle.ConstantTimeCompare([]byte(storedUser), []byte(*user.Username)) == 1
+	passOK := subtle.ConstantTimeCompare([]byte(storedPassword), []byte(*user.Password)) == 1
 
-	if storedUser != *user.Username {
-		return nil, errors.New("incorrect user")
+	if !userOK || !passOK {
+		return nil, errInvalidCredentials
 	}
 
 	//get Access Token

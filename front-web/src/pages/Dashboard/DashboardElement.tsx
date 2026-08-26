@@ -1,5 +1,5 @@
 import { AddIcon, DotsMoveIcon } from "../../assets/icons"
-import { useParams } from "react-router"
+import { useParams, useLocation } from "react-router"
 import { useEffect, useState, useRef, type Dispatch, type SetStateAction } from "react";
 import type { DataFetchedType, DBNode, ProjectNode } from "./nodes/types";
 import { isSortable, useSortable } from "@dnd-kit/react/sortable";
@@ -18,6 +18,8 @@ export default function DashboardProjectElement() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false)
   const { project_id } = useParams()
+  const location = useLocation()
+  const fromId = location.state?.from
   const [name, setName] = useState("")
 
   const addElement = async () => {
@@ -102,7 +104,7 @@ export default function DashboardProjectElement() {
       title={name}
       setTitle={setName}
       project_id={project_id}
-      backTo="./.."
+      backTo={fromId ? `/dashboard/${fromId}` : "./.."}
     >
       <section className="p-0 md:p-2 lg:p-4 flex  " >
 

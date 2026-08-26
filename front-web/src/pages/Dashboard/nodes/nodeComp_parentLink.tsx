@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { useNavigate } from "react-router"
+import { useNavigate, useParams } from "react-router"
 import { useNodeContext } from "./nodeContext"
 import { fetchGetNodeName } from "../../../components/fetchData"
 import { LinkIcon, NestedParentIcon } from "../../../assets/icons"
@@ -10,6 +10,7 @@ import { DeleteConfirmationModal } from "../../../components/ui/DeleteConfirmati
 export function NodeNestedParent() {
   const { node, onUpdate, onDelete } = useNodeContext()
   const navigate = useNavigate()
+  const { project_id } = useParams()
   const editRef = useRef<HTMLTextAreaElement>(null)
   const editBoxRef = useRef<HTMLTextAreaElement>(null)
   const prevName = useRef(node.data)
@@ -73,7 +74,7 @@ export function NodeNestedParent() {
       <div className="w-full flex items-center gap-2 group">
         <div
           className="flex-1 flex items-center gap-2 px-3 py-1.5 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 transition-colors cursor-pointer"
-          onClick={() => navigate(`/dashboard/${node.id}`)}
+          onClick={() => navigate(`/dashboard/${node.id}`, { state: { from: project_id } })}
         >
           <NestedParentIcon className="size-4 shrink-0 text-indigo-500" />
           <span className="truncate text-sm">{node.data}</span>
@@ -99,6 +100,7 @@ export function NodeNestedParent() {
 export function NodeParentLink() {
   const { node } = useNodeContext()
   const navigate = useNavigate()
+  const { project_id } = useParams()
   const [targetName, setTargetName] = useState<string>("")
   const [loading, setLoading] = useState(true)
 
@@ -124,7 +126,7 @@ export function NodeParentLink() {
 
   const handleClick = () => {
     if (!isBroken && node.ref_id) {
-      navigate(`/dashboard/${node.ref_id}`)
+      navigate(`/dashboard/${node.ref_id}`, { state: { from: project_id } })
     }
   }
 

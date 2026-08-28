@@ -22,6 +22,7 @@ func TodoRoutes(routes *gin.RouterGroup) {
 	parentNode := routes.Group("/parent_node")
 	parentNode.Use(controllers.AuthMiddleware())
 	{
+		parentNode.GET("/tree", controllers.GetParentTree)
 		parentNode.GET("/", controllers.GetParentNodes)
 		parentNode.GET("/getName/:id", controllers.GetNodeName)
 		parentNode.POST("/", controllers.AddParentNode)

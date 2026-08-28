@@ -8,6 +8,7 @@ import { AddElement } from "../../components/AddElement"
 import { DashboardLayout } from "./layout/DashboardLayout"
 import { EditButtonComp } from "../../components/ui/EditButtonComp"
 import { DeleteConfirmationModal } from "../../components/ui/DeleteConfirmationModal"
+import { useDisclosure } from "../../hooks/useDisclosure"
 
 export type ProjectType = {
   id?: number
@@ -26,6 +27,7 @@ export default function DashboardPage() {
   const [error, setError] = useState("");
   const [dashboardName, setDashboardName] = useState("dashboardName");
   const [deleteTarget, setDeleteTarget] = useState<{ id: number, incomingCount: number, name?: string } | null>(null);
+  const { isOpen: deleteOpen, open: openDeleteModal, close: closeDeleteModal } = useDisclosure();
 
   const updateData = async () => {
     try {
@@ -55,6 +57,7 @@ export default function DashboardPage() {
       if (result.count > 0) {
         const target = data.find(p => p.Id === item)
         setDeleteTarget({ id: item, incomingCount: result.count, name: target?.data })
+        openDeleteModal()
         return
       }
     } catch (err) {
@@ -68,13 +71,17 @@ export default function DashboardPage() {
     console.log(response)
     setData(prev => prev.filter(prevItem => prevItem.Id !== id))
     setDeleteTarget(null)
+    closeDeleteModal()
   }
 
   const confirmDelete = () => {
     if (deleteTarget) performDelete(deleteTarget.id)
   }
 
-  const cancelDelete = () => setDeleteTarget(null)
+  const cancelDelete = () => {
+    setDeleteTarget(null)
+    closeDeleteModal()
+  }
 
   return (
     <DashboardLayout title={dashboardName} setTitle={setDashboardName}>
@@ -118,7 +125,7 @@ export default function DashboardPage() {
         }
       </section>
       <DeleteConfirmationModal
-        isOpen={!!deleteTarget}
+        isOpen={deleteOpen}
         onClose={cancelDelete}
         onConfirm={confirmDelete}
         incomingCount={deleteTarget?.incomingCount ?? 0}

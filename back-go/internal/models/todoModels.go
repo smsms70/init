@@ -157,7 +157,7 @@ type UpdatedNode struct {
 	Done   *bool
 	Number *int
 	Lang   *string
-	RefId  *int
+	RefId  *int `json:"Ref_id"`
 }
 
 func PartialNodeUpdate(id string, updates UpdatedNode) error {
@@ -296,4 +296,54 @@ func GetIncomingLinks(targetId string) ([]IncomingLink, error) {
 		items = append(items, link)
 	}
 	return items, nil
+}
+
+type ParentTreeNode struct {
+	Id       int
+	Data     string
+	Children []*ParentTreeNode
+}
+
+func GetParentTree() ([]*ParentTreeNode, error) {
+	query := "SELECT id, data, parent_id FROM nodes WHERE (parent_id IS NULL OR type = 'parent_node') AND type != 'parent_link' ORDER BY id"
+	rows, err := config.DB.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	type rawNode struct {
+		Id       int
+		Data     string
+		ParentId sql.NullInt64
+	}
+	var all []rawNode
+	for rows.Next() {
+		var n rawNode
+		if err := rows.Scan(&n.Id, &n.Data, &n.ParentId); err != nil {
+			return nil, err
+		}
+		all = append(all, n)
+	}
+
+	nodeMap := make(map[int]*ParentTreeNode)
+	for i := range all {
+		nodeMap[all[i].Id] = &ParentTreeNode{
+			Id:   all[i].Id,
+			Data: all[i].Data,
+		}
+	}
+
+	var roots []*ParentTreeNode
+	for _, n := range all {
+		node := nodeMap[n.Id]
+		if n.ParentId.Valid {
+			if parent, ok := nodeMap[int(n.ParentId.Int64)]; ok {
+				parent.Children = append(parent.Children, node)
+			}
+		} else {
+			roots = append(roots, node)
+		}
+	}
+	return roots, nil
 }

@@ -6,6 +6,7 @@ import { LinkIcon, NestedParentIcon } from "../../../assets/icons"
 import { TextareaComp } from "../../../components/textareaComp"
 import { EditButtonComp } from "../../../components/ui/EditButtonComp"
 import { DeleteConfirmationModal } from "../../../components/ui/DeleteConfirmationModal"
+import { useDisclosure } from "../../../hooks/useDisclosure"
 
 export function NodeNestedParent() {
   const { node, onUpdate, onDelete } = useNodeContext()
@@ -16,7 +17,7 @@ export function NodeNestedParent() {
   const prevName = useRef(node.data)
 
   const [edit, setEdit] = useState(() => node.state.edit || !node.data)
-  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const { isOpen: showDeleteModal, open: openDeleteModal, close: closeDeleteModal } = useDisclosure()
 
   const isEditing = edit || !node.data
 
@@ -43,7 +44,7 @@ export function NodeNestedParent() {
 
   const handleDelete = () => {
     onDelete(node)
-    setShowDeleteModal(false)
+    closeDeleteModal()
   }
 
   if (isEditing) {
@@ -83,12 +84,12 @@ export function NodeNestedParent() {
           setEdit={setEdit}
           deleteEnabled={true}
           editBoxRef={editBoxRef}
-          handleDeleteElement={() => setShowDeleteModal(true)}
+          handleDeleteElement={openDeleteModal}
         />
       </div>
       <DeleteConfirmationModal
         isOpen={showDeleteModal}
-        onClose={() => setShowDeleteModal(false)}
+        onClose={closeDeleteModal}
         onConfirm={handleDelete}
         incomingCount={0}
         itemName={node.data}
@@ -98,17 +99,24 @@ export function NodeNestedParent() {
 }
 
 export function NodeParentLink() {
-  const { node } = useNodeContext()
+  const { node, onDelete } = useNodeContext()
   const navigate = useNavigate()
   const { project_id } = useParams()
   const [targetName, setTargetName] = useState<string>("")
   const [loading, setLoading] = useState(true)
+  const editBoxRef = useRef<HTMLTextAreaElement>(null)
+  const { isOpen: showDeleteModal, open: openDeleteModal, close: closeDeleteModal } = useDisclosure()
 
   const isBroken = !node.ref_id
 
+  const handleDelete = () => {
+    onDelete(node)
+    closeDeleteModal()
+  }
+
   useEffect(() => {
     if (!node.ref_id) {
-      setLoading(false)
+      queueMicrotask(() => setLoading(false))
       return
     }
     const loadTarget = async () => {
@@ -137,16 +145,34 @@ export function NodeParentLink() {
       : targetName || "unknown page"
 
   return (
-    <div
-      className={`w-full flex items-center gap-2 px-3 py-1.5 rounded-md cursor-pointer transition-colors ${
-        isBroken
-          ? "bg-gray-100 border border-dashed border-gray-300 text-gray-400"
-          : "bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100"
-      }`}
-      onClick={handleClick}
-    >
-      <LinkIcon className={`size-4 shrink-0 ${isBroken ? "text-gray-300" : "text-indigo-500"}`} />
-      <span className="truncate text-sm">{displayName}</span>
-    </div>
+    <>
+      <div className="w-full flex items-center gap-2 group">
+        <div
+          className={`flex-1 flex items-center gap-2 px-3 py-1.5 rounded-md cursor-pointer transition-colors ${
+            isBroken
+              ? "bg-gray-100 border border-dashed border-gray-300 text-gray-400"
+              : "bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100"
+          }`}
+          onClick={handleClick}
+        >
+          <LinkIcon className={`size-4 shrink-0 ${isBroken ? "text-gray-300" : "text-indigo-500"}`} />
+          <span className="truncate text-sm">{displayName}</span>
+        </div>
+        <EditButtonComp
+          setEdit={() => {}}
+          deleteEnabled={true}
+          editEnabled={false}
+          editBoxRef={editBoxRef}
+          handleDeleteElement={openDeleteModal}
+        />
+      </div>
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={closeDeleteModal}
+        onConfirm={handleDelete}
+        incomingCount={0}
+        itemName={displayName}
+      />
+    </>
   )
 }

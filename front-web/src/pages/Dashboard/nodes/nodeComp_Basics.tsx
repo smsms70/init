@@ -3,6 +3,7 @@ import type { ProjectNode } from "./types"
 import { useNodeContext } from "./nodeContext"
 import { TextareaComp } from "../../../components/textareaComp"
 import { DropdownAddComponent } from "../../../components/ui/DropdownAddComponent"
+import { LinkTargetPickerModal } from "../../../components/ui/LinkTargetPickerModal"
 
 export function NodeString() {
   return (
@@ -85,6 +86,8 @@ function SimpleEditText({ children, textClass, parentClass }: {
 
   const dropdownRef = useRef<HTMLDivElement>(null)
   const editRef = useRef<HTMLTextAreaElement>(null)
+  const selectingRef = useRef(false)
+  const [showLinkPicker, setShowLinkPicker] = useState(false)
 
   const updateEditState = (bool: boolean) => {
     console.log(node)
@@ -95,12 +98,14 @@ function SimpleEditText({ children, textClass, parentClass }: {
   }
 
   const updateType = (type: ProjectNode["type"], refId?: number) => {
+    selectingRef.current = true
     onUpdate({
       ...node,
       type: type,
       ref_id: refId,
       state: { ...node.state, edit: true },
     }, { Type: type, Ref_id: refId })
+    setTimeout(() => { selectingRef.current = false }, 0)
   }
 
   const addWithEnter = (e: React.KeyboardEvent) => {
@@ -143,7 +148,7 @@ function SimpleEditText({ children, textClass, parentClass }: {
                 placeholder="Enter text "
                 className={`min-h-6 ${textClass} wrap-break-word`}
                 onChange={data => onUpdate({ ...node, data })}
-                onBlur={() => updateEditState(false)}
+                onBlur={() => { if (!selectingRef.current) updateEditState(false) }}
                 onKeyDown={e => {
                   addWithEnter(e)
                   removeType(e)
@@ -167,9 +172,18 @@ function SimpleEditText({ children, textClass, parentClass }: {
           <DropdownAddComponent
             dropdownRef={dropdownRef}
             updateType={updateType}
+            onLinkPick={() => setShowLinkPicker(true)}
           />
         )
       }
+      <LinkTargetPickerModal
+        isOpen={showLinkPicker}
+        onClose={() => setShowLinkPicker(false)}
+        onSelect={(target) => {
+          updateType("parent_link", target.id)
+          setShowLinkPicker(false)
+        }}
+      />
     </div>
   )
 }

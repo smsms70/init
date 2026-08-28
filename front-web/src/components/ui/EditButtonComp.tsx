@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react"
 import { DeleteIcon, DotsIcon, EditPencilIcon } from "../../assets/icons"
 
-export function EditButtonComp({ deleteEnabled, handleDeleteElement, setEdit, editBoxRef }: {
+export function EditButtonComp({ deleteEnabled, handleDeleteElement, setEdit, editBoxRef, editEnabled = true }: {
   setEdit: React.Dispatch<React.SetStateAction<boolean>>
   handleDeleteElement?: () => void
   deleteEnabled?: boolean
   editBoxRef: React.RefObject<HTMLTextAreaElement | null>
+  editEnabled?: boolean
 }) {
   const [dropdown, setDropdown] = useState(false);
   const dropButtonRef = useRef<HTMLDivElement>(null);
@@ -42,12 +43,14 @@ export function EditButtonComp({ deleteEnabled, handleDeleteElement, setEdit, ed
           <section ref={dropBoxRef}
             className="absolute top-8 right-1 text-sm border border-gray-400 rounded bg-white py-1 px-1.5 z-100"
           >
-            <div onClick={() => handleEditTrue()}
-              className="flex gap-1.5 items-center hover:bg-gray-200 duration-100 rounded p-0.5"
-            >
-              <EditPencilIcon className="size-5" />
-              <span>Edit</span>
-            </div>
+            {editEnabled && (
+              <div onClick={() => handleEditTrue()}
+                className="flex gap-1.5 items-center hover:bg-gray-200 duration-100 rounded p-0.5"
+              >
+                <EditPencilIcon className="size-5" />
+                <span>Edit</span>
+              </div>
+            )}
             {
               deleteEnabled &&
               <div

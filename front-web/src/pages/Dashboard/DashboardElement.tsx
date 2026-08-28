@@ -207,6 +207,7 @@ function ProjectNode({ node, setNewItem, allItems, sortIndex }: {
   const addElement = async (strict: boolean = true, type?: ProjectNode["type"]) => {
     if (strict && (node.state.edit || isAnyEditing())) return
     if (node.type == "code") type = "string";
+    if (node.type == "parent_node" || node.type == "parent_link") type = "string";
 
     const nextOrden = allItems.find(item => item.state.orden > node.state.orden)
     const newOrden = nextOrden ?

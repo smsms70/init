@@ -85,6 +85,27 @@ export async function fetchParentsNodes() {
   }
 }
 
+export type ParentTreeNode = {
+  Id: number
+  Data: string
+  Children?: ParentTreeNode[]
+}
+
+export async function fetchParentTree() {
+  const url = URL + parent_nodes + "tree"
+  try {
+    const response = await fetchRefreshTokenMiddleware(url, {
+      method: 'GET',
+    })
+    const data = await response.json()
+    if (!response.ok) throw new Error(data.message || "unknown error")
+    return data.rows as ParentTreeNode[]
+  } catch (err) {
+    console.error("the error is: ", err)
+    throw err
+  }
+}
+
 export async function fetchGetNodeName(nodeId: string) {
   const url = URL + parent_nodes + "getName/" + nodeId
   try {

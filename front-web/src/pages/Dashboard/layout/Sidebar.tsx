@@ -1,13 +1,8 @@
 import { useEffect, useState } from "react"
 import { AddIcon, ArrowUpIcon, MenuIcon, PersonIcon } from "../../../assets/icons"
 import { Link, useNavigate, useParams } from "react-router"
-import { fetchAddParentNode, fetchParentsNodes } from "../../../components/fetchData"
+import { fetchAddParentNode, fetchParentTree, type ParentTreeNode } from "../../../components/fetchData"
 import { AddElement } from "../../../components/AddElement"
-
-type ParentNodeType = {
-  Id: number
-  data: string
-}
 
 export function Sidebar({ isOpen, setIsOpen }: {
   isOpen?: boolean
@@ -15,7 +10,8 @@ export function Sidebar({ isOpen, setIsOpen }: {
 }) {
   const [open, setOpen] = useState(true)
   const [projectsOpen, setProjectsOpen] = useState(true)
-  const [parents, setParents] = useState<ParentNodeType[]>([])
+  const [tree, setTree] = useState<ParentTreeNode[]>([])
+  const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set())
   const [loading, setLoading] = useState(true)
   const { project_id } = useParams()
   const navigate = useNavigate()
@@ -23,31 +19,42 @@ export function Sidebar({ isOpen, setIsOpen }: {
   const sidebarOpen = isOpen ?? open
   const toggleOpen = setIsOpen ?? setOpen
 
-  useEffect(() => {
-    const update = async () => {
-      try {
-        const data = await fetchParentsNodes()
-        setParents(data)
-      } catch (err) {
-        console.error("error fetching parents: ", err)
-      } finally {
-        setLoading(false)
-      }
+  const loadTree = async () => {
+    try {
+      const data = await fetchParentTree()
+      setTree(data || [])
+    } catch (err) {
+      console.error("error fetching tree: ", err)
+    } finally {
+      setLoading(false)
     }
-    update()
-  }, [])
+  }
+
+  useEffect(() => {
+    loadTree()
+  }, [project_id])
+
+  const toggleExpand = (id: number) => {
+    setExpandedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
 
   const handleAdd = async (data: string) => {
     const { id } = await fetchAddParentNode({ Data: data })
-    const updated = await fetchParentsNodes()
-    setParents(updated)
+    await loadTree()
     if (window.innerWidth < 768) toggleOpen(false)
     navigate(`/dashboard/${id}`)
   }
 
-  const asideClasses = `fixed left-0 top-0 bottom-0 z-40 w-64 bg-gray-800 text-white transition-all duration-200 ease-out ${
-    sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0 md:w-16"
-  }`
+  const asideClasses = `fixed left-0 top-0 bottom-0 z-40 w-64 bg-gray-800 text-white transition-all duration-200 ease-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0 md:w-16"
+    }`
 
   return (
     <>
@@ -72,7 +79,7 @@ export function Sidebar({ isOpen, setIsOpen }: {
           </button>
         </div>
         {sidebarOpen && (
-          <div className="p-4 text-sm">
+          <div className="px-2 py-4 text-sm">
             <nav>
               <div className="mb-2 flex w-full items-center justify-between">
                 <button
@@ -86,18 +93,18 @@ export function Sidebar({ isOpen, setIsOpen }: {
               {projectsOpen && (
                 loading ? (
                   <p>Loading...</p>
-                ) : parents.length ? (
+                ) : tree.length ? (
                   <ul className="flex flex-col gap-1">
-                    {parents.map(parent => (
-                      <li key={parent.Id}>
-                        <Link
-                          to={`/dashboard/${parent.Id}`}
-                          onClick={() => { if (window.innerWidth < 768) toggleOpen(false) }}
-                          className={`block rounded p-1.5 wrap-break-word duration-150 hover:bg-white/20 ${String(parent.Id) === project_id ? "bg-white/10 font-bold" : ""}`}
-                        >
-                          {parent.data}
-                        </Link>
-                      </li>
+                    {tree.map(node => (
+                      <SidebarItem
+                        key={node.Id}
+                        node={node}
+                        project_id={project_id}
+                        expandedIds={expandedIds}
+                        toggleExpand={toggleExpand}
+                        onNavigate={() => { if (window.innerWidth < 768) toggleOpen(false) }}
+                        depth={0}
+                      />
                     ))}
                   </ul>
                 ) : (
@@ -123,5 +130,58 @@ export function Sidebar({ isOpen, setIsOpen }: {
         )}
       </aside>
     </>
+  )
+}
+
+function SidebarItem({ node, project_id, expandedIds, toggleExpand, onNavigate, depth }: {
+  node: ParentTreeNode
+  project_id?: string
+  expandedIds: Set<number>
+  toggleExpand: (id: number) => void
+  onNavigate: () => void
+  depth: number
+}) {
+  const hasChildren = node.Children && node.Children.length > 0
+  const isExpanded = expandedIds.has(node.Id)
+  const isActive = String(node.Id) === project_id
+
+  return (
+    <li>
+      <div className="flex items-center gap-2">
+        {hasChildren ? (
+          <button
+            onClick={() => toggleExpand(node.Id)}
+            className="cursor-pointer rounded p-0.5 hover:bg-white/20 shrink-0"
+          >
+            <ArrowUpIcon className={`size-5 duration-200 ${isExpanded ? "rotate-180" : "rotate-90"}`} />
+          </button>
+        ) : (
+          <span className="w-[18px] shrink-0" />
+        )}
+        <Link
+          to={`/dashboard/${node.Id}`}
+          onClick={onNavigate}
+          className={`block flex-1 rounded p-1.5 wrap-break-word duration-150 hover:bg-white/20 ${isActive ? "bg-white/10 font-bold" : ""}`}
+          style={{ paddingLeft: `${depth * 12 + 4}px` }}
+        >
+          {node.Data}
+        </Link>
+      </div>
+      {hasChildren && isExpanded && (
+        <ul className="flex flex-col gap-1">
+          {node.Children!.map(child => (
+            <SidebarItem
+              key={child.Id}
+              node={child}
+              project_id={project_id}
+              expandedIds={expandedIds}
+              toggleExpand={toggleExpand}
+              onNavigate={onNavigate}
+              depth={depth + 1}
+            />
+          ))}
+        </ul>
+      )}
+    </li>
   )
 }

@@ -150,3 +150,12 @@ func GetIncomingLinks(c *gin.Context) {
 	}
 	c.JSON(200, gin.H{"count": len(rows), "links": rows})
 }
+
+func GetParentTree(c *gin.Context) {
+	rows, err := todoModels.GetParentTree()
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, gin.H{"rows": rows})
+}

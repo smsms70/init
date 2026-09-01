@@ -24,7 +24,7 @@ export function NodeTodo() {
         <div className="w-4 h-4 flex relative" onClick={() => setCompleted(prev => !prev)}>
           {
             node.type == "todo" && (
-              <input type="checkbox" ></input>
+              <input type="checkbox" checked={completed}></input>
             )
           }
         </div>

@@ -81,36 +81,60 @@ export function Sidebar({ isOpen, setIsOpen }: {
         {sidebarOpen && (
           <div className="px-2 py-4 text-sm">
             <nav>
-              <div className="mb-2 flex w-full items-center justify-between">
-                <button
-                  onClick={() => setProjectsOpen(!projectsOpen)}
-                  className="outline-none group flex w-full cursor-pointer items-center justify-between font-medium text-gray-300 hover:text-white"
-                >
-                  <span>Projects</span>
-                  <ArrowUpIcon className={`size-4 duration-200 group-hover:bg-white/20 rounded ${projectsOpen ? "rotate-180 " : "rotate-90"}`} />
-                </button>
-              </div>
-              {projectsOpen && (
-                loading ? (
-                  <p>Loading...</p>
-                ) : tree.length ? (
-                  <ul className="flex flex-col gap-1">
-                    {tree.map(node => (
-                      <SidebarItem
-                        key={node.Id}
-                        node={node}
-                        project_id={project_id}
-                        expandedIds={expandedIds}
-                        toggleExpand={toggleExpand}
-                        onNavigate={() => { if (window.innerWidth < 768) toggleOpen(false) }}
-                        depth={0}
-                      />
-                    ))}
-                  </ul>
-                ) : (
-                  <p>No projects</p>
+              {(() => {
+                const rootNode = tree.find(node => node.Type === "root")
+                const projects = tree.filter(node => node.Type !== "root")
+                return (
+                  <>
+                    {rootNode ? (
+                      <div className="mb-2 flex w-full items-center justify-between">
+                        <button
+                          onClick={() => {
+                            setProjectsOpen(!projectsOpen)
+                            navigate("/dashboard")
+                            if (window.innerWidth < 768) toggleOpen(false)
+                          }}
+                          className={`outline-none group flex w-full cursor-pointer items-center justify-between font-medium text-gray-300 hover:text-white ${!project_id ? "font-bold" : ""}`}
+                        >
+                          <span className="wrap-break-word">{rootNode.Data}</span>
+                          <ArrowUpIcon className={`size-4 duration-200 group-hover:bg-white/20 rounded ${projectsOpen ? "rotate-180 " : "rotate-90"}`} />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="mb-2 flex w-full items-center justify-between">
+                        <button
+                          onClick={() => setProjectsOpen(!projectsOpen)}
+                          className="outline-none group flex w-full cursor-pointer items-center justify-between font-medium text-gray-300 hover:text-white"
+                        >
+                          <span>Projects</span>
+                          <ArrowUpIcon className={`size-4 duration-200 group-hover:bg-white/20 rounded ${projectsOpen ? "rotate-180 " : "rotate-90"}`} />
+                        </button>
+                      </div>
+                    )}
+                    {projectsOpen && (
+                      loading ? (
+                        <p>Loading...</p>
+                      ) : projects.length ? (
+                        <ul className="flex flex-col gap-1">
+                          {projects.map(node => (
+                            <SidebarItem
+                              key={node.Id}
+                              node={node}
+                              project_id={project_id}
+                              expandedIds={expandedIds}
+                              toggleExpand={toggleExpand}
+                              onNavigate={() => { if (window.innerWidth < 768) toggleOpen(false) }}
+                              depth={0}
+                            />
+                          ))}
+                        </ul>
+                      ) : (
+                        <p>No projects</p>
+                      )
+                    )}
+                  </>
                 )
-              )}
+              })()}
               <AddElement
                 onAdd={handleAdd}
                 placeholder="Project name"
@@ -159,7 +183,7 @@ function SidebarItem({ node, project_id, expandedIds, toggleExpand, onNavigate, 
           <span className="w-[18px] shrink-0" />
         )}
         <Link
-          to={`/dashboard/${node.Id}`}
+          to={node.Type === "root" ? "/dashboard" : `/dashboard/${node.Id}`}
           onClick={onNavigate}
           className={`block flex-1 rounded p-1.5 wrap-break-word duration-150 hover:bg-white/20 ${isActive ? "bg-white/10 font-bold" : ""}`}
           style={{ paddingLeft: `${depth * 12 + 4}px` }}

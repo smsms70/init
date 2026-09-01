@@ -88,6 +88,7 @@ export async function fetchParentsNodes() {
 export type ParentTreeNode = {
   Id: number
   Data: string
+  Type?: string
   Children?: ParentTreeNode[]
 }
 
@@ -102,6 +103,40 @@ export async function fetchParentTree() {
     return data.rows as ParentTreeNode[]
   } catch (err) {
     console.error("the error is: ", err)
+    throw err
+  }
+}
+
+export async function fetchGetRootNode() {
+  const url = URL + parent_nodes + "root"
+  try {
+    const response = await fetchRefreshTokenMiddleware(url, {
+      method: 'GET',
+    })
+    const data = await response.json()
+    if (!response.ok) throw new Error(data.message || "unknown error")
+    return data
+  } catch (err) {
+    console.error("error is: ", err)
+    throw err
+  }
+}
+
+export async function fetchUpdateRootNode(data: string) {
+  const url = URL + parent_nodes + "root"
+  try {
+    const response = await fetchRefreshTokenMiddleware(url, {
+      method: 'PUT',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ Data: data })
+    })
+    if (!response.ok) throw new Error("error connecting")
+    return await response.json()
+  } catch (err) {
+    console.error("error is: ", err)
     throw err
   }
 }

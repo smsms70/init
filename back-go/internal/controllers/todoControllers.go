@@ -36,6 +36,32 @@ func GetNodes(c *gin.Context) {
 	c.JSON(200, gin.H{"rows": rows})
 }
 
+func GetRootNode(c *gin.Context) {
+	node, err := todoModels.GetRootNode()
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"id": node.Id, "data": node.Data})
+}
+
+type RootNodeStruct struct {
+	Data string `json:"data" binding:"required"`
+}
+
+func UpdateRootNode(c *gin.Context) {
+	var body RootNodeStruct
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	if err := todoModels.UpdateRootNode(body.Data); err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "updated"})
+}
+
 func GetNodeName(c *gin.Context) {
 	id := c.Param("id")
 	rows, err := todoModels.GetNodeName(id)

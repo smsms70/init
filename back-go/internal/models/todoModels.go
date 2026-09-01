@@ -57,8 +57,10 @@ func CreateTableNode() error {
 	return nil
 }
 
+const rootNodeType = "root"
+
 func GetParentNodes() ([]ParentNodes, error) {
-	rows, err := config.DB.Query("SELECT id, data, type FROM nodes WHERE parent_id IS NULL")
+	rows, err := config.DB.Query("SELECT id, data, type FROM nodes WHERE parent_id IS NULL AND type != ?", rootNodeType)
 
 	if err != nil {
 		return nil, err
@@ -97,6 +99,39 @@ func GetNodeName(parentId string) ([]NodeName, error) {
 		items = append(items, node)
 	}
 	return items, nil
+}
+
+type RootNode struct {
+	Id   int
+	Data string
+}
+
+func EnsureRootNodeExists() error {
+	var id int
+	err := config.DB.QueryRow("SELECT id FROM nodes WHERE type = ? AND parent_id IS NULL", rootNodeType).Scan(&id)
+	if err == nil {
+		return nil
+	}
+	if err != sql.ErrNoRows {
+		return err
+	}
+
+	_, execErr := config.DB.Exec("INSERT INTO nodes(data, type, parent_id) VALUES(?, ?, NULL)", "dashboard", rootNodeType)
+	return execErr
+}
+
+func GetRootNode() (*RootNode, error) {
+	var node RootNode
+	err := config.DB.QueryRow("SELECT id, data FROM nodes WHERE type = ? AND parent_id IS NULL", rootNodeType).Scan(&node.Id, &node.Data)
+	if err != nil {
+		return nil, err
+	}
+	return &node, nil
+}
+
+func UpdateRootNode(data string) error {
+	_, err := config.DB.Exec("UPDATE nodes SET data = ? WHERE type = ? AND parent_id IS NULL", data, rootNodeType)
+	return err
 }
 
 func GetNodes(parentId string) ([]Nodes, error) {
@@ -301,11 +336,12 @@ func GetIncomingLinks(targetId string) ([]IncomingLink, error) {
 type ParentTreeNode struct {
 	Id       int
 	Data     string
+	Type     string
 	Children []*ParentTreeNode
 }
 
 func GetParentTree() ([]*ParentTreeNode, error) {
-	query := "SELECT id, data, parent_id FROM nodes WHERE (parent_id IS NULL OR type = 'parent_node') AND type != 'parent_link' ORDER BY id"
+	query := "SELECT id, data, parent_id, type FROM nodes WHERE (parent_id IS NULL OR type = 'parent_node') AND type != 'parent_link' ORDER BY id"
 	rows, err := config.DB.Query(query)
 	if err != nil {
 		return nil, err
@@ -316,11 +352,12 @@ func GetParentTree() ([]*ParentTreeNode, error) {
 		Id       int
 		Data     string
 		ParentId sql.NullInt64
+		Type     string
 	}
 	var all []rawNode
 	for rows.Next() {
 		var n rawNode
-		if err := rows.Scan(&n.Id, &n.Data, &n.ParentId); err != nil {
+		if err := rows.Scan(&n.Id, &n.Data, &n.ParentId, &n.Type); err != nil {
 			return nil, err
 		}
 		all = append(all, n)
@@ -331,6 +368,7 @@ func GetParentTree() ([]*ParentTreeNode, error) {
 		nodeMap[all[i].Id] = &ParentTreeNode{
 			Id:   all[i].Id,
 			Data: all[i].Data,
+			Type: all[i].Type,
 		}
 	}
 

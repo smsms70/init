@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { AddIcon } from "../../assets/icons"
 import { Link } from "react-router"
-import { fetchAddParentNode, fetchDeleteNode, fetchParentsNodes, fetchUpdateNodes, fetchIncomingLinks } from "../../components/fetchData"
+import { fetchAddParentNode, fetchDeleteNode, fetchParentsNodes, fetchUpdateNodes, fetchIncomingLinks, fetchGetRootNode } from "../../components/fetchData"
 import type { DBNode } from "./nodes/types"
 import { TextareaComp } from "../../components/textareaComp"
 import { AddElement } from "../../components/AddElement"
@@ -25,7 +25,8 @@ export default function DashboardPage() {
   const [data, setData] = useState<ProjectNodeType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [dashboardName, setDashboardName] = useState("dashboardName");
+  const [dashboardName, setDashboardName] = useState("");
+  const [rootId, setRootId] = useState<number>();
   const [deleteTarget, setDeleteTarget] = useState<{ id: number, incomingCount: number, name?: string } | null>(null);
   const { isOpen: deleteOpen, open: openDeleteModal, close: closeDeleteModal } = useDisclosure();
 
@@ -44,6 +45,20 @@ export default function DashboardPage() {
   useEffect(() => {
     const update = async () => updateData()
     update()
+  }, [])
+
+  const loadRoot = async () => {
+    try {
+      const root = await fetchGetRootNode()
+      setRootId(root.id)
+      setDashboardName(root.data)
+    } catch (err) {
+      console.error("error loading root node: ", err)
+    }
+  }
+
+  useEffect(() => {
+    loadRoot()
   }, [])
 
   const addElement = async (item: Pick<DBNode, "Data">) => {
@@ -84,7 +99,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <DashboardLayout title={dashboardName} setTitle={setDashboardName}>
+    <DashboardLayout title={dashboardName} setTitle={setDashboardName} project_id={rootId?.toString()}>
       <section className="grid mb-30 grid-cols-[repeat(auto-fit,minmax(250px,1fr))] px-7 gap-6 ">
         {
           !loading ? (

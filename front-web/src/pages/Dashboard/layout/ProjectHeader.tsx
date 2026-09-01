@@ -13,7 +13,13 @@ export function ProjectHeader({ name, setName, project_id, deleteButton }: {
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
   const editBoxRef = useRef<HTMLTextAreaElement>(null);
+  const prevName = useRef(name);
 
+  useEffect(() => {
+    if (edit) {
+      prevName.current = name
+    }
+  }, [edit])
 
   useEffect(() => {
     const updateHandler = async () => {
@@ -21,6 +27,7 @@ export function ProjectHeader({ name, setName, project_id, deleteButton }: {
       try {
         setLoading(true)
         await fetchUpdateNodes(Number(project_id), { Data: name })
+        prevName.current = name
       } catch (err) {
         console.error(err)
         setError(true)
@@ -28,7 +35,7 @@ export function ProjectHeader({ name, setName, project_id, deleteButton }: {
         setLoading(false)
       }
     }
-    if (!edit && project_id && name) {
+    if (!edit && project_id && name && prevName.current !== name) {
       updateHandler()
     }
   }, [edit])

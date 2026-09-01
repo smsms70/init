@@ -24,6 +24,8 @@ func TodoRoutes(routes *gin.RouterGroup) {
 	{
 		parentNode.GET("/tree", controllers.GetParentTree)
 		parentNode.GET("/", controllers.GetParentNodes)
+		parentNode.GET("/root", controllers.GetRootNode)
+		parentNode.PUT("/root", controllers.UpdateRootNode)
 		parentNode.GET("/getName/:id", controllers.GetNodeName)
 		parentNode.POST("/", controllers.AddParentNode)
 	}

@@ -49,6 +49,7 @@ func main() {
 	defer config.DB.Close()
 
 	model.CreateTableNode()
+	model.EnsureRootNodeExists()
 	r := router.Group("/api/v1")
 
 	routes.TodoRoutes(r)
